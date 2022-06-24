@@ -5,7 +5,8 @@ from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
 
 LOG_LEVELS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
 LOCAL_IP = "0.0.0.0"
-PORT = 20000
+# PORT = 20000
+PORT = 20001
 
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
@@ -86,8 +87,8 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
         stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
         stack_config.outstation.params.allowUnsolicited = True
-        stack_config.link.LocalAddr = 10
-        stack_config.link.RemoteAddr = 1
+        stack_config.link.LocalAddr = 1
+        stack_config.link.RemoteAddr = 10
         stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
         return stack_config
 
