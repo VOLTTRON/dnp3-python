@@ -173,7 +173,13 @@ class MasterCmd(cmd.Cmd):
 def main():
     cmd_interface = MasterCmd()
     _log.debug('Initialization complete. In command loop.')
-    cmd_interface.startup()
+    # cmd_interface.startup()
+    count = 0
+    while True:
+        from time import sleep
+        count += 1
+        print("============count ", count)
+        sleep(3)
     _log.debug('Exiting.')
 
 

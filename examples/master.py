@@ -8,6 +8,8 @@ from visitors import *
 FILTERS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
 HOST = "127.0.0.1"
 LOCAL = "0.0.0.0"
+# HOST = "127.0.0.1"
+# LOCAL = "127.0.0.1"
 PORT = 20000
 
 stdout_stream = logging.StreamHandler(sys.stdout)
@@ -65,6 +67,7 @@ class MyMaster:
             self.stack_config = asiodnp3.MasterStackConfig()
             self.stack_config.master.responseTimeout = openpal.TimeDuration().Seconds(2)
             self.stack_config.link.RemoteAddr = 10
+            self.stack_config.link.LocalAddr = 1  # TODO: kefei added, wild guess
 
         _log.debug('Adding the master to the channel.')
         self.soe_handler = soe_handler
@@ -161,6 +164,8 @@ class MyLogger(openpal.ILogHandler):
         _log.debug('LOG\t\t{:<10}\tfilters={:<5}\tlocation={:<25}\tentry={}'.format(flag, filters, location, message))
 
 
+
+
 class AppChannelListener(asiodnp3.IChannelListener):
     """
         Override IChannelListener in this manner to implement application-specific channel behavior.
@@ -217,6 +222,48 @@ class SOEHandler(opendnp3.ISOEHandler):
 class MasterApplication(opendnp3.IMasterApplication):
     def __init__(self):
         super(MasterApplication, self).__init__()
+
+        _log.debug('Configuring the DNP3 stack.')  # TODO: kefei added mimic outstation, wild guess
+        self.stack_config = self.configure_stack()
+
+        _log.debug('Configuring the outstation database.')
+        self.configure_database(self.stack_config.dbConfig)  # TODO: kefei added mimic outstation, wild guess
+
+    @staticmethod
+    def configure_stack():  # TODO: kefei added mimic outstation, wild guess
+        """Set up the OpenDNP3 configuration."""
+        stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
+        stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
+        stack_config.outstation.params.allowUnsolicited = True
+        stack_config.link.LocalAddr = 1
+        stack_config.link.RemoteAddr = 10
+        stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
+        return stack_config
+
+    @staticmethod
+    def configure_database(db_config):  # TODO: kefei added mimic outstation, wild guess
+        """
+            Configure the Outstation's database of input point definitions.
+
+            # Configure two Analog points (group/variation 30.1) at indexes 1 and 2.
+            Configure two Analog points (group/variation 30.1) at indexes 0, 1.
+            Configure two Binary points (group/variation 1.2) at indexes 1 and 2.
+        """
+        db_config.analog[0].clazz = opendnp3.PointClass.Class2
+        db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
+        db_config.analog[1].clazz = opendnp3.PointClass.Class2
+        db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        db_config.analog[1].evariation = opendnp3.EventAnalogVariation.Group32Var7
+        # db_config.analog[2].clazz = opendnp3.PointClass.Class2
+        # db_config.analog[2].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        # db_config.analog[2].evariation = opendnp3.EventAnalogVariation.Group32Var7
+        db_config.binary[1].clazz = opendnp3.PointClass.Class2
+        db_config.binary[1].svariation = opendnp3.StaticBinaryVariation.Group1Var2
+        db_config.binary[1].evariation = opendnp3.EventBinaryVariation.Group2Var2
+        db_config.binary[2].clazz = opendnp3.PointClass.Class2
+        db_config.binary[2].svariation = opendnp3.StaticBinaryVariation.Group1Var2
+        db_config.binary[2].evariation = opendnp3.EventBinaryVariation.Group2Var2
 
     # Overridden method
     def AssignClassDuringStartup(self):
