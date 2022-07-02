@@ -6,10 +6,9 @@ from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
 from visitors import *
 
 FILTERS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
-HOST = "127.0.0.1"
-LOCAL = "0.0.0.0"
 # HOST = "127.0.0.1"
-# LOCAL = "127.0.0.1"
+LOCAL = "0.0.0.0"
+HOST = "192.168.1.14"
 PORT = 20000
 
 stdout_stream = logging.StreamHandler(sys.stdout)
@@ -66,8 +65,8 @@ class MyMaster:
         if not self.stack_config:
             self.stack_config = asiodnp3.MasterStackConfig()
             self.stack_config.master.responseTimeout = openpal.TimeDuration().Seconds(2)
-            self.stack_config.link.RemoteAddr = 10
-            self.stack_config.link.LocalAddr = 1  # TODO: kefei added, wild guess
+            self.stack_config.link.RemoteAddr = 10  # outstation ip
+            self.stack_config.link.LocalAddr = 1  # TODO: kefei added, wild guess (the guess is right) master
 
         _log.debug('Adding the master to the channel.')
         self.soe_handler = soe_handler
