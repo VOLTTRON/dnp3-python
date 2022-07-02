@@ -105,3 +105,6 @@ ENV/
 # VisualStudio and VisualStudio Code project settings
 .vscode/
 .vs/
+
+# pycharm
+.idea/
