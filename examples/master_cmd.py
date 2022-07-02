@@ -182,12 +182,25 @@ def main():
 
         # mimic do_o3
         # This could also have been in multiple steps, as follows:
-        command_set = opendnp3.CommandSet()
-        command_set.Add([
-            opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 0),
-            opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_OFF), 1)
-        ])
-        cmd_interface.application.send_direct_operate_command_set(command_set, command_callback)
+        # command_set = opendnp3.CommandSet()
+        # command_set.Add([
+        #     opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 0),
+        #     opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_OFF), 1)
+        # ])
+        # cmd_interface.application.send_direct_operate_command_set(command_set, command_callback)
+
+        # # mimic do_o2
+        # # """Send a DirectOperate AnalogOutput (group 41) index 10 value 7 to the Outstation. Command syntax is: o2"""
+        # cmd_interface.application.send_direct_operate_command(opendnp3.AnalogOutputInt32(7),
+        #                                                       0,
+        #                                                       command_callback)
+
+        # mimic do_o2 (kefei's wild guess)
+        # """Send a DirectOperate AnalogOutput (group 41) index 10 value 7 to the Outstation. Command syntax is: o2"""
+        cmd_interface.application.send_direct_operate_command(opendnp3.AnalogOutputFloat32(7.2),
+                                                              0,
+                                                              command_callback)
+
         sleep(3)
     _log.debug('Exiting.')
 
