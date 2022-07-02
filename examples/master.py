@@ -240,9 +240,9 @@ class MasterApplication(opendnp3.IMasterApplication):
         return stack_config
 
     @staticmethod
-    def configure_database(db_config):  # TODO: kefei added mimic outstation, wild guess
+    def configure_database(db_config):  # TODO: kefei added. TO mimic outstation--wild guess. And it worked.
         """
-            Configure the Outstation's database of input point definitions.
+            Configure the Master station's database of input point definitions.
 
             # Configure two Analog points (group/variation 30.1) at indexes 1 and 2.
             Configure two Analog points (group/variation 30.1) at indexes 0, 1.
