@@ -179,6 +179,15 @@ def main():
         from time import sleep
         count += 1
         print("============count ", count)
+
+        # mimic do_o3
+        # This could also have been in multiple steps, as follows:
+        command_set = opendnp3.CommandSet()
+        command_set.Add([
+            opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 0),
+            opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_OFF), 1)
+        ])
+        cmd_interface.application.send_direct_operate_command_set(command_set, command_callback)
         sleep(3)
     _log.debug('Exiting.')
 
