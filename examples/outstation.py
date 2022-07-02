@@ -87,8 +87,8 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
         stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
         stack_config.outstation.params.allowUnsolicited = True
-        stack_config.link.LocalAddr = 10
-        stack_config.link.RemoteAddr = 1
+        stack_config.link.LocalAddr = 1  # meaning for outstation, use 1 to follow simulator's default
+        stack_config.link.RemoteAddr = 2  # meaning for master station, use 2 to follow simulator's default
         stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
         return stack_config
 
