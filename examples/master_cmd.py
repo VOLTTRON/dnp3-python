@@ -197,9 +197,9 @@ def main():
 
         # mimic do_o2 (kefei's wild guess)
         # """Send a DirectOperate AnalogOutput (group 41) index 10 value 7 to the Outstation. Command syntax is: o2"""
-        cmd_interface.application.send_direct_operate_command(opendnp3.AnalogOutputFloat32(7.2),
-                                                              0,
-                                                              command_callback)
+        # cmd_interface.application.send_direct_operate_command(opendnp3.AnalogOutputFloat32(7.2),
+        #                                                       0,
+        #                                                       command_callback)
 
         sleep(3)
     _log.debug('Exiting.')
