@@ -215,6 +215,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         visitor = visitor_class()
         values.Foreach(visitor)
         for index, value in visitor.index_and_value:
+            print("=================this seems important")
             log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
             _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
 

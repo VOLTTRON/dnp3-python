@@ -201,6 +201,19 @@ def main():
         #                                                       0,
         #                                                       command_callback)
 
+        # mimic do do_scan_all(self, line):
+        #         """Call ScanAllObjects. Command syntax is: scan_all"""
+        # cmd_interface.application.master.ScanAllObjects(opendnp3.GroupVariationID(2, 1),  # TODO: investigate the signature, wild guess here.
+                                                                                            # TODO: GroupVariationID(30, 1) is a good start for Binary_input(?)
+        #                                                 opendnp3.TaskConfig().Default())
+        # cmd_interface.application.master.ScanAllObjects(opendnp3.GroupVariationID(1, 2),
+        #                                                 opendnp3.TaskConfig().Default())
+        # cmd_interface.application.master.ScanAllObjects(opendnp3.GroupVariationID(30, 1),
+        #                                                 opendnp3.TaskConfig().Default())
+        result_maybe = cmd_interface.application.master.ScanAllObjects(opendnp3.GroupVariationID(30, 1),
+                                                        opendnp3.TaskConfig().Default())
+        print("================print something and hope it works =========== (and it doesn't)", result_maybe)
+
         sleep(3)
     _log.debug('Exiting.')
 
