@@ -23,7 +23,7 @@ _log.setLevel(logging.DEBUG)
 
 class MyMaster:
     """
-        Interface for all master application callback info except for measurement values.
+        Interface for all master application callback info except for measurement values. (TODO: where is and how to get measurement values then?)
 
         DNP3 spec section 5.1.6.1:
             The Application Layer provides the following services for the DNP3 User Layer in a master:

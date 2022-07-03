@@ -7,6 +7,8 @@ from pydnp3 import opendnp3, openpal
 from master import MyMaster, MyLogger, AppChannelListener, SOEHandler, MasterApplication
 from master import command_callback, restart_callback
 
+from pydnp3 import asiodnp3 as asiodnp3
+
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
 
@@ -221,9 +223,16 @@ def main():
         # """Do an ad-hoc scan of a range of points (group 1, variation 2, indexes 0-3). Command syntax is: scan_range"""
         # self.application.master.ScanRange(opendnp3.GroupVariationID(1, 2), 0, 3, opendnp3.TaskConfig().Default())
         cmd_interface.application.master.ScanRange(opendnp3.GroupVariationID(30, 1), 0, 3, opendnp3.TaskConfig().Default())  # this is the most promising one so far
-        result_maybe = cmd_interface.application.master.ScanRange(opendnp3.GroupVariationID(30, 1), 0, 3, opendnp3.TaskConfig().Default())
-        print("================print something and hope it works =========== (and it doesn't)", result_maybe)
+        # result_maybe = cmd_interface.application.master.ScanRange(opendnp3.GroupVariationID(30, 1), 0, 3, opendnp3.TaskConfig().Default())
+        # print("================print something and hope it works =========== (and it doesn't)", result_maybe)
         # TODO: figure it out how to retrieve value/point stats in a cleaner way. Try Callback. Asynchronous.
+        # TODO: check SOEHandler as well: https://www.ficksworkshop.com/blog/openplc-dnp3-master
+        # TODO: check this website: https://dnp3.github.io/docs/guide/3.0.0/api/masters/
+
+        # print("================test asiodnp3.IStack().GetStackStatistics()", )
+        # asiodnp3.IStack().GetStackStatistics()
+
+
 
         sleep(3)
     _log.debug('Exiting.')
