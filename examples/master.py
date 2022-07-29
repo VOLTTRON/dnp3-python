@@ -220,7 +220,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         visitor = visitor_class()
         values.Foreach(visitor)
         for index, value in visitor.index_and_value:
-            print("=================this seems important")
+            # print("=================this seems important")
             log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
             _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
 
@@ -279,6 +279,14 @@ class MasterApplication(opendnp3.IMasterApplication):
         db_config.binary[2].clazz = opendnp3.PointClass.Class2
         db_config.binary[2].svariation = opendnp3.StaticBinaryVariation.Group1Var2
         db_config.binary[2].evariation = opendnp3.EventBinaryVariation.Group2Var2
+
+        # Kefei's wild guess for analog output config
+        db_config.aoStatus[0].clazz = opendnp3.PointClass.Class2
+        db_config.aoStatus[0].svariation = opendnp3.StaticAnalogOutputStatusVariation.Group40Var1
+        # db_config.aoStatus[0].evariation = opendnp3.StaticAnalogOutputStatusVariation.Group40Var1
+        db_config.boStatus[0].clazz = opendnp3.PointClass.Class2
+        db_config.boStatus[0].svariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
+        # db_config.boStatus[0].evariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
 
     # Overridden method
     def AssignClassDuringStartup(self):
