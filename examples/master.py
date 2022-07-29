@@ -71,10 +71,11 @@ class MyMaster:
             self.stack_config.link.LocalAddr = 2  # meaning for master station, use 2 to follow simulator's default
 
         _log.debug('Adding the master to the channel.')
-        self.soe_handler = soe_handler
+        self.soe_handler: SOEHandler = soe_handler
         self.master_application = master_application
         self.master = self.channel.AddMaster("master",
-                                             asiodnp3.PrintingSOEHandler().Create(),
+                                             # asiodnp3.PrintingSOEHandler().Create(),
+                                             self.soe_handler,
                                              self.master_application,
                                              self.stack_config)
 
@@ -193,6 +194,10 @@ class SOEHandler(opendnp3.ISOEHandler):
 
     def __init__(self):
         super(SOEHandler, self).__init__()
+        self._class_index_value = None
+
+    def get_class_index_value(self):
+        return self._class_index_value
 
     def Process(self, info, values):
         """
@@ -218,6 +223,9 @@ class SOEHandler(opendnp3.ISOEHandler):
             print("=================this seems important")
             log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
             _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
+
+        self._class_index_value = (visitor_class, visitor.index_and_value)
+        print("==very import== class_index_value", self._class_index_value)
 
     def Start(self):
         _log.debug('In SOEHandler.Start')
