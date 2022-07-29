@@ -134,7 +134,8 @@ def main():
         # cmd_interface.application.apply_update(opendnp3.Analog(float(value_string)), index)
         # cmd_interface.application.apply_update(opendnp3.Analog(random.choice([5.1, 6.1, 19.2, 34.1])), index)
         print("============update=======, binary: ", flip_bool, "index: ", 0)
-        cmd_interface.application.apply_update(opendnp3.Binary(not flip_bool), 0)
+        flip_bool = not flip_bool
+        cmd_interface.application.apply_update(opendnp3.Binary(flip_bool), 0)
         sleep(5)
     _log.debug('Exiting.')
 

@@ -223,7 +223,11 @@ def main():
         # """Do an ad-hoc scan of a range of points (group 1, variation 2, indexes 0-3). Command syntax is: scan_range"""
         # self.application.master.ScanRange(opendnp3.GroupVariationID(1, 2), 0, 3, opendnp3.TaskConfig().Default())
         cmd_interface.application.master.ScanRange(opendnp3.GroupVariationID(30, 1), 0, 3, opendnp3.TaskConfig().Default())  # this is the most promising one so far
-        print("if this work, then we are good: ", cmd_interface.application.soe_handler.get_class_index_value())
+        print(f"count {count}", "if this work, then we are good: ", cmd_interface.application.soe_handler.get_class_index_value())
+        sleep(0.01)  # TODO: since it is aychnous, need this walk-around to assure update
+        cmd_interface.application.master.ScanRange(opendnp3.GroupVariationID(1, 2), 0, 3,
+                                                   opendnp3.TaskConfig().Default())  # this is the most promising one so far
+        print(f"count {count}", "if this work, then we are good: ", cmd_interface.application.soe_handler.get_class_index_value())
         # result_maybe = cmd_interface.application.master.ScanRange(opendnp3.GroupVariationID(30, 1), 0, 3, opendnp3.TaskConfig().Default())
         # print("================print something and hope it works =========== (and it doesn't)", result_maybe)
         # TODO: figure it out how to retrieve value/point stats in a cleaner way. Try Callback. Asynchronous.
