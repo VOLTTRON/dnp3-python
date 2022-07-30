@@ -209,8 +209,25 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         :param index: (integer) DNP3 index of the payload's data definition.
         :param op_type: An OperateType, or None if command_type == 'Select'.
         """
-        print("======I am evoked, right?")
+        # print("======I am evoked, right?")
+        # print("command_type ", command_type)
+        # print("command ", command)
+        # print("command status ", command.status)
+        #
+        # print("command dir ", dir(command))
+        # # print("command var ", vars(command))
+        # # print("command rawCode ", command.rawCode) # TODO: this is working for binaryoutput 3 for ON, 4 for OFF
+        # print("command value ", command.value)  # TODO: this is working for analogoutput
+        # print("command __getattribute__ ", command.__getattribute__)
+        # print("op_type ", op_type)
         _log.debug('Processing received point value for index {}: {}'.format(index, command))
+
+        # TODO: need to update the XXXOutput points
+        builder = asiodnp3.UpdateBuilder()
+        # builder.Update(opendnp3.BinaryOutputStatus(True), index)  # TODO: half way there. this is how to update BinaryOutput
+        builder.Update(opendnp3.AnalogOutputStatus(int(command.value)), index)  # TODO: half way there. this is how to update BinaryOutput
+        update = builder.Build()
+        OutstationApplication.get_outstation().Apply(update)
 
     def apply_update(self, value, index):
         """
@@ -221,6 +238,7 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         :param value: An instance of Analog, Binary, or another opendnp3 data value.
         :param index: (integer) Index of the data definition in the opendnp3 database.
         """
+        print("=======value in apply_update", value)
         _log.debug('Recording {} measurement, index={}, value={}'.format(type(value).__name__, index, value.value))
         builder = asiodnp3.UpdateBuilder()
         builder.Update(value, index)
@@ -266,6 +284,9 @@ class OutstationCommandHandler(opendnp3.ICommandHandler):
         :param op_type: OperateType
         :return: CommandStatus
         """
+        # print("Operate===========command, ", command)
+        # print("Operate===========index, ", index)
+        # print("Operate===========op_type, ", op_type)
         OutstationApplication.process_point_value('Operate', command, index, op_type)
         return opendnp3.CommandStatus.SUCCESS
 
