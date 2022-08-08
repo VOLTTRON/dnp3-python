@@ -86,7 +86,7 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         """Set up the OpenDNP3 configuration."""
         stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
         stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
-        stack_config.outstation.params.allowUnsolicited = True
+        stack_config.outstation.params.allowUnsolicited = True  # TODO: create interface for this
         stack_config.link.LocalAddr = 1  # meaning for outstation, use 1 to follow simulator's default
         stack_config.link.RemoteAddr = 2  # meaning for master station, use 2 to follow simulator's default
         stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
@@ -101,15 +101,20 @@ class OutstationApplication(opendnp3.IOutstationApplication):
             Configure two Analog points (group/variation 30.1) at indexes 0, 1.
             Configure two Binary points (group/variation 1.2) at indexes 1 and 2.
         """
-        # db_config.analog[0].clazz = opendnp3.PointClass.Class2
-        # db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        # db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
-        # db_config.analog[1].clazz = opendnp3.PointClass.Class2
-        # db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        # db_config.analog[1].evariation = opendnp3.EventAnalogVariation.Group32Var7
-        # db_config.analog[2].clazz = opendnp3.PointClass.Class2
-        # db_config.analog[2].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        # db_config.analog[2].evariation = opendnp3.EventAnalogVariation.Group32Var7
+        db_config.analog[0].clazz = opendnp3.PointClass.Class2
+        db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
+        db_config.analog[1].clazz = opendnp3.PointClass.Class2
+        db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        db_config.analog[1].evariation = opendnp3.EventAnalogVariation.Group32Var7
+        db_config.analog[2].clazz = opendnp3.PointClass.Class2
+        db_config.analog[2].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        db_config.analog[2].evariation = opendnp3.EventAnalogVariation.Group32Var7
+
+        # AnalogInput
+        db_config.binary[0].clazz = opendnp3.PointClass.Class2
+        db_config.binary[0].svariation = opendnp3.StaticBinaryVariation.Group1Var2
+        db_config.binary[0].evariation = opendnp3.EventBinaryVariation.Group2Var2
         db_config.binary[1].clazz = opendnp3.PointClass.Class2
         db_config.binary[1].svariation = opendnp3.StaticBinaryVariation.Group1Var2
         db_config.binary[1].evariation = opendnp3.EventBinaryVariation.Group2Var2
@@ -124,6 +129,8 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         db_config.boStatus[0].clazz = opendnp3.PointClass.Class2
         db_config.boStatus[0].svariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
         # db_config.boStatus[0].evariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
+
+
 
     def shutdown(self):
         """

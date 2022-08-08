@@ -195,11 +195,11 @@ class SOEHandler(opendnp3.ISOEHandler):
     def __init__(self):
         super(SOEHandler, self).__init__()
         self._class_index_value = None
-
+        self._class_index__value_dict = {}
     def get_class_index_value(self):
         return self._class_index_value
 
-    def Process(self, info, values):
+    def Process(self, info, values, *args, **kwargs):
         """
             Process measurement data.
 
@@ -225,7 +225,16 @@ class SOEHandler(opendnp3.ISOEHandler):
             _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
 
         self._class_index_value = (visitor_class, visitor.index_and_value)
-        print("==very import== class_index_value", self._class_index_value)
+        self._class_index__value_dict[visitor_class] = visitor.index_and_value
+        # print("==very import== class_index_value", self._class_index_value)
+        # print("---------- import args, kwargs", *args, **kwargs) # nothing here
+        print("---------- important info", info, type(info))
+        print("---------- important dir(info)", info, dir(info))
+        print('info.flagsValid', info.flagsValid, 'info.gv', info.gv,
+              'info.headerIndex', info.headerIndex, 'info.isEventVariation', info.isEventVariation,
+              'info.qualifier', info.qualifier, 'info.tsmode', info.tsmode,
+              '_class_index_value: ', self._class_index_value)
+        print("_class_index__value_dict", self._class_index__value_dict)
 
     def Start(self):
         _log.debug('In SOEHandler.Start')
@@ -242,17 +251,19 @@ class MasterApplication(opendnp3.IMasterApplication):
         self.stack_config = self.configure_stack()
 
         _log.debug('Configuring the outstation database.')
-        self.configure_database(self.stack_config.dbConfig)  # TODO: kefei added mimic outstation, wild guess
+        # self.configure_database(self.stack_config.dbConfig)  # TODO: kefei added mimic outstation, wild guess
 
     @staticmethod
     def configure_stack():  # TODO: kefei added mimic outstation, wild guess
         """Set up the OpenDNP3 configuration."""
-        stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
-        stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
-        stack_config.outstation.params.allowUnsolicited = True
+        # stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
+        # stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
+        # stack_config.outstation.params.allowUnsolicited = False
+        stack_config = asiodnp3.MasterStackConfig()
         stack_config.link.LocalAddr = 2  # meaning for master station, use 2 to follow simulator's default
         stack_config.link.RemoteAddr = 1  # meaning for outstation, use 1 to follow simulator's default
-        stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
+        stack_config.master.disableUnsolOnStartup = True
+        # stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
         return stack_config
 
     @staticmethod
@@ -264,21 +275,25 @@ class MasterApplication(opendnp3.IMasterApplication):
             Configure two Analog points (group/variation 30.1) at indexes 0, 1.
             Configure two Binary points (group/variation 1.2) at indexes 1 and 2.
         """
-        db_config.analog[0].clazz = opendnp3.PointClass.Class2
-        db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
-        db_config.analog[1].clazz = opendnp3.PointClass.Class2
-        db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        db_config.analog[1].evariation = opendnp3.EventAnalogVariation.Group32Var7
+        # db_config.analog[0].clazz = opendnp3.PointClass.Class2
+        # db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        # db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
+        # db_config.analog[1].clazz = opendnp3.PointClass.Class2
+        # db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        # db_config.analog[1].evariation = opendnp3.EventAnalogVariation.Group32Var7
         # db_config.analog[2].clazz = opendnp3.PointClass.Class2
         # db_config.analog[2].svariation = opendnp3.StaticAnalogVariation.Group30Var1
         # db_config.analog[2].evariation = opendnp3.EventAnalogVariation.Group32Var7
-        db_config.binary[1].clazz = opendnp3.PointClass.Class2
-        db_config.binary[1].svariation = opendnp3.StaticBinaryVariation.Group1Var2
-        db_config.binary[1].evariation = opendnp3.EventBinaryVariation.Group2Var2
-        db_config.binary[2].clazz = opendnp3.PointClass.Class2
-        db_config.binary[2].svariation = opendnp3.StaticBinaryVariation.Group1Var2
-        db_config.binary[2].evariation = opendnp3.EventBinaryVariation.Group2Var2
+        #
+        # db_config.binary[0].clazz = opendnp3.PointClass.Class2
+        # db_config.binary[0].svariation = opendnp3.StaticBinaryVariation.Group1Var2
+        # db_config.binary[0].evariation = opendnp3.EventBinaryVariation.Group2Var2
+        # db_config.binary[1].clazz = opendnp3.PointClass.Class2
+        # db_config.binary[1].svariation = opendnp3.StaticBinaryVariation.Group1Var2
+        # db_config.binary[1].evariation = opendnp3.EventBinaryVariation.Group2Var2
+        # db_config.binary[2].clazz = opendnp3.PointClass.Class2
+        # db_config.binary[2].svariation = opendnp3.StaticBinaryVariation.Group1Var2
+        # db_config.binary[2].evariation = opendnp3.EventBinaryVariation.Group2Var2
 
         # Kefei's wild guess for analog output config
         db_config.aoStatus[0].clazz = opendnp3.PointClass.Class2
