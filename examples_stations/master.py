@@ -17,8 +17,10 @@ stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
 
 _log = logging.getLogger(__name__)
+# _log = logging.getLogger("MasterStation")
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
+# _log.setLevel(logging.ERROR)  # TODO: encapsulate this
 
 
 class MyMaster:
@@ -56,7 +58,7 @@ class MyMaster:
         self.listener = listener
         self.channel = self.manager.AddTCPClient("tcpclient",
                                                  # FILTERS,
-                                                 opendnp3.levels.NOTHING,
+                                                 opendnp3.levels.NORMAL, # | opendnp3.levels.ALL_COMMS
                                                  self.retry,
                                                  HOST,
                                                  LOCAL,
@@ -90,8 +92,10 @@ class MyMaster:
                                                   openpal.TimeDuration().Minutes(1),
                                                   opendnp3.TaskConfig().Default())
 
-        self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
-        self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
+        # self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
+        # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
+        self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.NOTHING))
+        self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.NOTHING))
 
         _log.debug('Enabling the master. At this point, traffic will start to flow between the Master and Outstations.')
         self.master.Enable()
@@ -251,7 +255,7 @@ class MasterApplication(opendnp3.IMasterApplication):
         _log.debug('Configuring the DNP3 stack.')  # TODO: kefei added mimic outstation, wild guess
         self.stack_config = self.configure_stack()
 
-        _log.debug('Configuring the outstation database.')
+        # _log.debug('Configuring the outstation database.')
         # self.configure_database(self.stack_config.dbConfig)  # TODO: kefei added mimic outstation, wild guess
 
     @staticmethod
