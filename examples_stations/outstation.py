@@ -14,6 +14,7 @@ stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname
 _log = logging.getLogger(__name__)
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
+_log.setLevel(logging.ERROR)  # TODO: encapsulate this
 
 
 class OutstationApplication(opendnp3.IOutstationApplication):
@@ -232,7 +233,7 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         # TODO: need to update the XXXOutput points
         builder = asiodnp3.UpdateBuilder()
         # builder.Update(opendnp3.BinaryOutputStatus(True), index)  # TODO: half way there. this is how to update BinaryOutput
-        builder.Update(opendnp3.AnalogOutputStatus(int(command.value)), index)  # TODO: half way there. this is how to update BinaryOutput
+        builder.Update(opendnp3.AnalogOutputStatus(int(command.value)), index)  # TODO: half way there. this is how to update AnalogOutput
         update = builder.Build()
         OutstationApplication.get_outstation().Apply(update)
 
@@ -245,7 +246,7 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         :param value: An instance of Analog, Binary, or another opendnp3 data value.
         :param index: (integer) Index of the data definition in the opendnp3 database.
         """
-        print("=======value in apply_update", value)
+        # print("=======value in apply_update", value)
         _log.debug('Recording {} measurement, index={}, value={}'.format(type(value).__name__, index, value.value))
         builder = asiodnp3.UpdateBuilder()
         builder.Update(value, index)
@@ -276,8 +277,8 @@ class OutstationCommandHandler(opendnp3.ICommandHandler):
         :param index: int
         :return: CommandStatus
         """
-        print("===========command, ", command)
-        print("===========index, ", index)
+        # print("===========command, ", command)
+        # print("===========index, ", index)
         OutstationApplication.process_point_value('Select', command, index, None)
         return opendnp3.CommandStatus.SUCCESS
 

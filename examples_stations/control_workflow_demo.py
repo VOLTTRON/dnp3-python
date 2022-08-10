@@ -23,13 +23,9 @@ stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
 
 _log = logging.getLogger(__name__)
-_log = logging.getLogger("data_retrieval_demo")
+_log = logging.getLogger("control_workflow_demo")
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
-
-
-
-
 
 
 def main():
@@ -59,22 +55,31 @@ def main():
         # TODO: fix/add wrapper to allow taking float value and output as float value.
 
         # outstation update point value (slower than outstation query)
-        if count % 3 == 0:
+        if count % 2 == 0:
             point_values_0 = [4.0, 7.0, 2.0]
             point_values_1 = [14.0, 17.0, 12.0]
             point_values_2 = [24.0, 27.0, 22.0]
             for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
                 p_val = random.choice(pts)
-                print(f"====== Outstation update index {i} with {p_val}")
-                cmd_interface_outstation.application.apply_update(opendnp3.Analog(float(p_val)), i)
+                print(f"====== Master send command index {i} with {p_val}")
+                # cmd_interface_outstation.application.apply_update(opendnp3.Analog(float(p_val)), i)
+                # cmd_interface_master.application.send_direct_operate_command(opendnp3.AnalogOutputInt32(int(p_val)),
+                #                                                              i,
+                #                                                              command_callback)
+                cmd_interface_master.application.send_select_and_operate_command(opendnp3.AnalogOutputInt32(int(p_val)),
+                                                                             i,
+                                                                             command_callback)  # TODO: explore difference between send_direct_operate_command and send_select_and_operate_command
+                # TODO: redesign the command_callback workflow
 
-        sleep(0.41)  # TODO: since it is aychnous, need this walk-around to assure update
+        sleep(0.41)  # TODO: since it is aychnous, need this walk-around to assure update, use callback instead
+
 
         # master station retrieve value
 
         # for testing purpose, the index no.3 is empty, i.e., it will return 0 always.
-        cmd_interface_master.application.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
-                                                   config=opendnp3.TaskConfig().Default())
+        cmd_interface_master.application.master.ScanRange(gvId=opendnp3.GroupVariationID(40, 2), start=0, stop=3,
+                                                   config=opendnp3.TaskConfig().Default())  # experiement, for analog output (this is working)
+        # TODO: switch config=opendnp3.TaskConfig().Default() in ScanRange to customerized config
 
         print(f"===important log _class_index_value ==== {count}",
               cmd_interface_master.application.soe_handler._class_index_value)
@@ -86,10 +91,13 @@ def main():
         # simple logic: requry the full set of points if get unsolicited result
         # TODO: refactor this logic inside SOEHandler to distinguish unsolicited/solicited update, i.e., use count
         result = cmd_interface_master.application.soe_handler._class_index__value_dict
-        index_value_s = result.get(visitors.VisitorIndexedAnalog)
-        if index_value_s and len(index_value_s) < 4:  # hard coded:
+        index_value_s = result.get(visitors.VisitorIndexedAnalogOutputStatus)
+        # print("=========index_value_s", index_value_s)
+        # print("=========result", result)
+        if index_value_s and (len(index_value_s) < 4 or len(index_value_s) == 10):  # hard coded: note: the number==10 is associated with config=opendnp3.TaskConfig().Default()
             # print("======I am inside")
-            cmd_interface_master.application.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
+            sleep(0.01)  # TODO: since it is aychnous, need this walk-around to assure update
+            cmd_interface_master.application.master.ScanRange(gvId=opendnp3.GroupVariationID(40, 2), start=0, stop=3,
                                                               config=opendnp3.TaskConfig().Default())
             sleep(0.01)  # TODO: since it is aychnous, need this walk-around to assure update
             print(f"===import log _class_index_value ==== {count}",

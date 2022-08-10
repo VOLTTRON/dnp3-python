@@ -20,7 +20,7 @@ _log = logging.getLogger(__name__)
 # _log = logging.getLogger("MasterStation")
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
-# _log.setLevel(logging.ERROR)  # TODO: encapsulate this
+_log.setLevel(logging.ERROR)  # TODO: encapsulate this
 
 
 class MyMaster:
@@ -233,13 +233,13 @@ class SOEHandler(opendnp3.ISOEHandler):
         self._class_index__value_dict[visitor_class] = visitor.index_and_value
         # print("==very import== class_index_value", self._class_index_value)
         # print("---------- import args, kwargs", *args, **kwargs) # nothing here
-        print("---------- important info", info, type(info))
-        print("---------- important dir(info)", info, dir(info))
-        print('info.flagsValid', info.flagsValid, 'info.gv', info.gv,
-              'info.headerIndex', info.headerIndex, 'info.isEventVariation', info.isEventVariation,
-              'info.qualifier', info.qualifier, 'info.tsmode', info.tsmode,
-              '_class_index_value: ', self._class_index_value)
-        print("_class_index__value_dict", self._class_index__value_dict)
+        # print("---------- important info", info, type(info))
+        # print("---------- important dir(info)", info, dir(info))
+        # print('info.flagsValid', info.flagsValid, 'info.gv', info.gv,
+        #       'info.headerIndex', info.headerIndex, 'info.isEventVariation', info.isEventVariation,
+        #       'info.qualifier', info.qualifier, 'info.tsmode', info.tsmode,
+        #       '_class_index_value: ', self._class_index_value)
+        # print("_class_index__value_dict", self._class_index__value_dict)
 
     def Start(self):
         _log.debug('In SOEHandler.Start')
@@ -350,8 +350,9 @@ def command_callback(result: opendnp3.ICommandTaskResult = None):
     """
     :type result: opendnp3.ICommandTaskResult
     """
-    print("Received command result with summary: {}".format(opendnp3.TaskCompletionToString(result.summary)))
-    result.ForeachItem(collection_callback)
+    # print("Received command result with summary: {}".format(opendnp3.TaskCompletionToString(result.summary)))  # note: do not trust this, since it is asynchronous
+    # result.ForeachItem(collection_callback)
+    pass
 
 
 def restart_callback(result=opendnp3.RestartOperationResult()):
