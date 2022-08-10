@@ -53,7 +53,9 @@ class MyMaster:
                  stack_config=None):
         _log.debug('Creating a DNP3Manager.')
         self.log_handler = log_handler
-        self.manager = asiodnp3.DNP3Manager(1, self.log_handler)
+        # self.manager = asiodnp3.DNP3Manager(1, self.log_handler)
+        print("====Master self.log_handler = log_handler", self.log_handler)
+        self.manager = asiodnp3.DNP3Manager(4, self.log_handler)  # TODO: play with concurrencyHint
 
         _log.debug('Creating the DNP3 channel, a TCP client.')
         self.retry = asiopal.ChannelRetry().Default()

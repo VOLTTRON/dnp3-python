@@ -58,7 +58,9 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         threads_to_allocate = 1
         # self.log_handler = MyLogger()
         self.log_handler = asiodnp3.ConsoleLogger().Create()              # (or use this during regression testing)
-        self.manager = asiodnp3.DNP3Manager(threads_to_allocate, self.log_handler)
+        # self.manager = asiodnp3.DNP3Manager(threads_to_allocate, self.log_handler)
+        print("====outstation self.log_handler = log_handler", self.log_handler)
+        self.manager = asiodnp3.DNP3Manager(4, self.log_handler)  # TODO: play with concurrencyHint
 
         _log.debug('Creating the DNP3 channel, a TCP server.')
         self.retry_parameters = asiopal.ChannelRetry().Default()
