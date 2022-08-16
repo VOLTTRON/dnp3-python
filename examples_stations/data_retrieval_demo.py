@@ -5,12 +5,14 @@ import sys
 
 from datetime import datetime
 from pydnp3 import opendnp3, openpal
-from master import MyMaster, MyLogger, AppChannelListener, SOEHandler, MasterApplication
+# from master import MyMaster, MyLogger, AppChannelListener, SOEHandler, MasterApplication
 from master import command_callback, restart_callback
 
 from pydnp3 import asiodnp3 as asiodnp3
 
-from master_cmd import MasterCmd
+# from master_cmd import MasterCmd
+# from master_new import MasterCmdNew
+from master_new import MyMasterNew, MyLogger, AppChannelListener
 from outstation_cmd import OutstationCmd
 
 import visitors
@@ -33,7 +35,12 @@ _log.setLevel(logging.DEBUG)
 
 
 def main():
-    cmd_interface_master = MasterCmd()
+    # cmd_interface_master = MasterCmdNew()
+    # master_application = MyMasterNew(log_handler=MyLogger(),
+    #                                  listener=AppChannelListener(),
+    #                                  soe_handler=SOEHandler(),
+    #                                  master_application=MasterApplication())
+    master_application = MyMasterNew()
     _log.debug('Initialization complete. Master Station in command loop.')
     cmd_interface_outstation = OutstationCmd()
     _log.debug('Initialization complete. OutStation in command loop.')
@@ -73,11 +80,15 @@ def main():
         # master station retrieve value
 
         # for testing purpose, the index no.3 is empty, i.e., it will return 0 always.
-        cmd_interface_master.application.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
-                                                   config=opendnp3.TaskConfig().Default())
+        # cmd_interface_master.application.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
+        #                                            config=opendnp3.TaskConfig().Default())
+        master_application.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
+                                                          config=opendnp3.TaskConfig().Default())
 
+        # print(f"===important log _class_index_value ==== {count}",
+        #       cmd_interface_master.application.soe_handler._class_index_value)
         print(f"===important log _class_index_value ==== {count}",
-              cmd_interface_master.application.soe_handler._class_index_value)
+              master_application.soe_handler._class_index_value)
         # print(f"===import log _class_index_value_dict ==== {count}",
         #       cmd_interface_master.application.soe_handler._class_index__value_dict)
         # print(f"===import log _class_index_value_dict visitors.VisitorIndexedAnalog ==== {count}",
@@ -85,15 +96,20 @@ def main():
 
         # simple logic: requry the full set of points if get unsolicited result
         # TODO: refactor this logic inside SOEHandler to distinguish unsolicited/solicited update, i.e., use count
-        result = cmd_interface_master.application.soe_handler._class_index__value_dict
+        # result = cmd_interface_master.application.soe_handler._class_index__value_dict
+        result = master_application.soe_handler._class_index__value_dict
         index_value_s = result.get(visitors.VisitorIndexedAnalog)
         if index_value_s and len(index_value_s) < 4:  # hard coded:
             # print("======I am inside")
-            cmd_interface_master.application.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
+            # cmd_interface_master.application.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
+            #                                                   config=opendnp3.TaskConfig().Default())
+            master_application.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
                                                               config=opendnp3.TaskConfig().Default())
             sleep(0.01)  # TODO: since it is aychnous, need this walk-around to assure update
+            # print(f"===import log _class_index_value ==== {count}",
+            #       cmd_interface_master.application.soe_handler._class_index_value)
             print(f"===import log _class_index_value ==== {count}",
-                  cmd_interface_master.application.soe_handler._class_index_value)
+                  master_application.soe_handler._class_index_value)
 
 
         # cmd_interface.application.apply_update(opendnp3.Analog(float(value_string)), index)
@@ -170,8 +186,8 @@ def main():
 
         sleep(1)
     _log.debug('Exiting.')
-    cmd_interface_outstation.do_quit("something")
-    cmd_interface_master.do_quit("something")
+    # cmd_interface_outstation.do_quit("something")
+    # cmd_interface_master.do_quit("something")
     # quit()
     # quit()
     # TODO: shutdown gracefully
