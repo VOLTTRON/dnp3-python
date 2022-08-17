@@ -64,6 +64,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         super(SOEHandler, self).__init__()
         self._class_index_value = None
         self._class_index__value_dict = {}
+        self._class_index_value_nested_dict = {}
     def get_class_index_value(self):
         return self._class_index_value
 
@@ -86,7 +87,9 @@ class SOEHandler(opendnp3.ISOEHandler):
         }
         visitor_class = visitor_class_types[type(values)]
         visitor = visitor_class()
-        values.Foreach(visitor)
+        values.Foreach(visitor)  # mystery method, magic side effect
+        print("================= values type", type(values))
+
         for index, value in visitor.index_and_value:
             # print("=================this seems important")
             log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
@@ -94,6 +97,18 @@ class SOEHandler(opendnp3.ISOEHandler):
 
         self._class_index_value = (visitor_class, visitor.index_and_value)
         self._class_index__value_dict[visitor_class] = visitor.index_and_value
+        # update nested dict
+        if not self._class_index_value_nested_dict.get(visitor_class):
+            self._class_index_value_nested_dict[visitor_class] = dict(visitor.index_and_value)
+        else:
+            self._class_index_value_nested_dict[visitor_class].update(dict(visitor.index_and_value))
+        # print("=============== self._class_index_value_nested_dict", self._class_index_value_nested_dict)
+        # TODO: right now there is no way to distinguish 0-value and value from non-configured points (also zero)
+        # e.g., {0: 4.0, 1: 12.0, 2: 24.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0, 8: 0.0, 9: 0.0}
+        # Need to assume a Master station knows whether certain point is configured and whether the value is valid.
+
+        # TODO: figure out where the default point configuation is at (e.g., 10 indexs for each Group)
+
         # print("==very import== class_index_value", self._class_index_value)
         # print("---------- import args, kwargs", *args, **kwargs) # nothing here
         # print("---------- important info", info, type(info))
@@ -111,90 +126,90 @@ class SOEHandler(opendnp3.ISOEHandler):
         _log.debug('In SOEHandler.End')
 
 
-class MasterApplication(opendnp3.IMasterApplication):
-    def __init__(self):
-        super(MasterApplication, self).__init__()
-
-        _log.debug('Configuring the DNP3 stack.')  # TODO: kefei added mimic outstation, wild guess
-        self.stack_config = self.configure_stack()
-
-        _log.debug('Configuring the outstation database.')
-        # self.configure_database(self.stack_config.dbConfig)  # TODO: kefei added mimic outstation, wild guess
-
-    @staticmethod
-    def configure_stack():  # TODO: kefei added mimic outstation, wild guess
-        """Set up the OpenDNP3 configuration."""
-        # stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
-        # stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
-        # stack_config.outstation.params.allowUnsolicited = False
-        stack_config = asiodnp3.MasterStackConfig()
-        stack_config.link.LocalAddr = 2  # meaning for master station, use 2 to follow simulator's default
-        stack_config.link.RemoteAddr = 1  # meaning for outstation, use 1 to follow simulator's default
-        stack_config.master.disableUnsolOnStartup = True
-        # stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
-        return stack_config
-
-    @staticmethod
-    def configure_database(db_config):  # TODO: kefei added. TO mimic outstation--wild guess. And it worked.
-        """
-            Configure the Master station's database of input point definitions.
-
-            # Configure two Analog points (group/variation 30.1) at indexes 1 and 2.
-            Configure two Analog points (group/variation 30.1) at indexes 0, 1.
-            Configure two Binary points (group/variation 1.2) at indexes 1 and 2.
-        """
-        # db_config.analog[0].clazz = opendnp3.PointClass.Class2
-        # db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        # db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
-        # db_config.analog[1].clazz = opendnp3.PointClass.Class2
-        # db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        # db_config.analog[1].evariation = opendnp3.EventAnalogVariation.Group32Var7
-        # db_config.analog[2].clazz = opendnp3.PointClass.Class2
-        # db_config.analog[2].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        # db_config.analog[2].evariation = opendnp3.EventAnalogVariation.Group32Var7
-        #
-        # db_config.binary[0].clazz = opendnp3.PointClass.Class2
-        # db_config.binary[0].svariation = opendnp3.StaticBinaryVariation.Group1Var2
-        # db_config.binary[0].evariation = opendnp3.EventBinaryVariation.Group2Var2
-        # db_config.binary[1].clazz = opendnp3.PointClass.Class2
-        # db_config.binary[1].svariation = opendnp3.StaticBinaryVariation.Group1Var2
-        # db_config.binary[1].evariation = opendnp3.EventBinaryVariation.Group2Var2
-        # db_config.binary[2].clazz = opendnp3.PointClass.Class2
-        # db_config.binary[2].svariation = opendnp3.StaticBinaryVariation.Group1Var2
-        # db_config.binary[2].evariation = opendnp3.EventBinaryVariation.Group2Var2
-
-        # Kefei's wild guess for analog output config
-        db_config.aoStatus[0].clazz = opendnp3.PointClass.Class2
-        db_config.aoStatus[0].svariation = opendnp3.StaticAnalogOutputStatusVariation.Group40Var1
-        # db_config.aoStatus[0].evariation = opendnp3.StaticAnalogOutputStatusVariation.Group40Var1
-        db_config.boStatus[0].clazz = opendnp3.PointClass.Class2
-        db_config.boStatus[0].svariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
-        # db_config.boStatus[0].evariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
-
-    # Overridden method
-    def AssignClassDuringStartup(self):
-        _log.debug('In MasterApplication.AssignClassDuringStartup')
-        return False
-
-    # Overridden method
-    def OnClose(self):
-        _log.debug('In MasterApplication.OnClose')
-
-    # Overridden method
-    def OnOpen(self):
-        _log.debug('In MasterApplication.OnOpen')
-
-    # Overridden method
-    def OnReceiveIIN(self, iin):
-        _log.debug('In MasterApplication.OnReceiveIIN')
-
-    # Overridden method
-    def OnTaskComplete(self, info):
-        _log.debug('In MasterApplication.OnTaskComplete')
-
-    # Overridden method
-    def OnTaskStart(self, type, id):
-        _log.debug('In MasterApplication.OnTaskStart')
+# class MasterApplication(opendnp3.IMasterApplication):
+#     def __init__(self):
+#         super(MasterApplication, self).__init__()
+#
+#         _log.debug('Configuring the DNP3 stack.')  # TODO: kefei added mimic outstation, wild guess
+#         self.stack_config = self.configure_stack()
+#
+#         _log.debug('Configuring the outstation database.')
+#         # self.configure_database(self.stack_config.dbConfig)  # TODO: kefei added mimic outstation, wild guess
+#
+#     @staticmethod
+#     def configure_stack():  # TODO: kefei added mimic outstation, wild guess
+#         """Set up the OpenDNP3 configuration."""
+#         # stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
+#         # stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
+#         # stack_config.outstation.params.allowUnsolicited = False
+#         stack_config = asiodnp3.MasterStackConfig()
+#         stack_config.link.LocalAddr = 2  # meaning for master station, use 2 to follow simulator's default
+#         stack_config.link.RemoteAddr = 1  # meaning for outstation, use 1 to follow simulator's default
+#         stack_config.master.disableUnsolOnStartup = True
+#         # stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
+#         return stack_config
+#
+#     @staticmethod
+#     def configure_database(db_config):  # TODO: kefei added. TO mimic outstation--wild guess. And it worked.
+#         """
+#             Configure the Master station's database of input point definitions.
+#
+#             # Configure two Analog points (group/variation 30.1) at indexes 1 and 2.
+#             Configure two Analog points (group/variation 30.1) at indexes 0, 1.
+#             Configure two Binary points (group/variation 1.2) at indexes 1 and 2.
+#         """
+#         # db_config.analog[0].clazz = opendnp3.PointClass.Class2
+#         # db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+#         # db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
+#         # db_config.analog[1].clazz = opendnp3.PointClass.Class2
+#         # db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+#         # db_config.analog[1].evariation = opendnp3.EventAnalogVariation.Group32Var7
+#         # db_config.analog[2].clazz = opendnp3.PointClass.Class2
+#         # db_config.analog[2].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+#         # db_config.analog[2].evariation = opendnp3.EventAnalogVariation.Group32Var7
+#         #
+#         # db_config.binary[0].clazz = opendnp3.PointClass.Class2
+#         # db_config.binary[0].svariation = opendnp3.StaticBinaryVariation.Group1Var2
+#         # db_config.binary[0].evariation = opendnp3.EventBinaryVariation.Group2Var2
+#         # db_config.binary[1].clazz = opendnp3.PointClass.Class2
+#         # db_config.binary[1].svariation = opendnp3.StaticBinaryVariation.Group1Var2
+#         # db_config.binary[1].evariation = opendnp3.EventBinaryVariation.Group2Var2
+#         # db_config.binary[2].clazz = opendnp3.PointClass.Class2
+#         # db_config.binary[2].svariation = opendnp3.StaticBinaryVariation.Group1Var2
+#         # db_config.binary[2].evariation = opendnp3.EventBinaryVariation.Group2Var2
+#
+#         # Kefei's wild guess for analog output config
+#         db_config.aoStatus[0].clazz = opendnp3.PointClass.Class2
+#         db_config.aoStatus[0].svariation = opendnp3.StaticAnalogOutputStatusVariation.Group40Var1
+#         # db_config.aoStatus[0].evariation = opendnp3.StaticAnalogOutputStatusVariation.Group40Var1
+#         db_config.boStatus[0].clazz = opendnp3.PointClass.Class2
+#         db_config.boStatus[0].svariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
+#         # db_config.boStatus[0].evariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
+#
+#     # Overridden method
+#     def AssignClassDuringStartup(self):
+#         _log.debug('In MasterApplication.AssignClassDuringStartup')
+#         return False
+#
+#     # Overridden method
+#     def OnClose(self):
+#         _log.debug('In MasterApplication.OnClose')
+#
+#     # Overridden method
+#     def OnOpen(self):
+#         _log.debug('In MasterApplication.OnOpen')
+#
+#     # Overridden method
+#     def OnReceiveIIN(self, iin):
+#         _log.debug('In MasterApplication.OnReceiveIIN')
+#
+#     # Overridden method
+#     def OnTaskComplete(self, info):
+#         _log.debug('In MasterApplication.OnTaskComplete')
+#
+#     # Overridden method
+#     def OnTaskStart(self, type, id):
+#         _log.debug('In MasterApplication.OnTaskStart')
 
 
 def collection_callback(result=None):
@@ -383,6 +398,35 @@ class MyMasterNew:
         """
         self.master.SelectAndOperate(command_set, callback, config)
 
+    def retrieve_point_vals(self, gvId,
+                            index_start: int,
+                            index_stop: int,
+                            config=opendnp3.TaskConfig().Default()
+                            ):
+        """Summary line.
+
+        Extended description of function.
+
+        :param int arg1: Description of arg1.
+        :param str arg2: Description of arg2.
+        :raise: ValueError if arg1 is equal to arg2
+        :return: Description of return value
+        :rtype: bool
+
+        :example:
+
+        >>> a=1
+        >>> b=2
+        >>> func(a,b)
+        True
+        """
+        # self.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
+        #                 config=opendnp3.TaskConfig().Default())
+        self.master.ScanRange(gvId=gvId, start=index_start, stop=index_stop,
+                              config=config)
+        # return self.soe_handler._class_index_value
+        return self.soe_handler._class_index_value_nested_dict
+
     def shutdown(self):
         del self.slow_scan
         del self.fast_scan
@@ -391,5 +435,6 @@ class MyMasterNew:
         self.manager.Shutdown()
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     pass
+#     # main()
