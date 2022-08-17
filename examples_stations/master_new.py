@@ -25,7 +25,6 @@ from master_utils import MyLogger, AppChannelListener, SOEHandler
 from master_utils import collection_callback, command_callback, restart_callback
 
 
-
 # class MyLogger(openpal.ILogHandler):
 #     """
 #         Override ILogHandler in this manner to implement application-specific logging behavior.
@@ -339,7 +338,6 @@ class MyMasterNew:
                                                  port,
                                                  self.listener)
 
-
         # init Master(master)
         _log.debug('Adding the master to the channel.')
         self.master = self.channel.AddMaster("master",
@@ -350,7 +348,7 @@ class MyMasterNew:
 
         _log.debug('Configuring some scans (periodic reads).')
         # Set up a "slow scan", an infrequent integrity poll that requests events and static data for all classes.
-        self.slow_scan = self.master.AddClassScan(opendnp3.ClassField().AllClasses(),  #TODO: add interface entrypoint
+        self.slow_scan = self.master.AddClassScan(opendnp3.ClassField().AllClasses(),  # TODO: add interface entrypoint
                                                   openpal.TimeDuration().Minutes(30),
                                                   opendnp3.TaskConfig().Default())
         # Set up a "fast scan", a relatively-frequent exception poll that requests events and class 1 static data.
@@ -358,14 +356,14 @@ class MyMasterNew:
                                                   openpal.TimeDuration().Minutes(1),
                                                   opendnp3.TaskConfig().Default())
 
-        self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))  #TODO: add interface entrypoint
+        self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))  # TODO: add interface entrypoint
         self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
         # self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.NOTHING))  # TODO: add interface entrypoint
         # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.NOTHING))
 
         _log.debug('Enabling the master. At this point, traffic will start to flow between the Master and Outstations.')
         self.master.Enable()
-        time.sleep(5)
+        # time.sleep(5)  # TODO: justify the neccessity
 
     def send_direct_operate_command(self,
                                     command: Union[opendnp3.ControlRelayOutputBlock,
@@ -448,7 +446,7 @@ class MyMasterNew:
         #                       config=config)
 
         self.master.ScanAllObjects(gvId=gvId,
-                              config=config)
+                                   config=config)
         # return self.soe_handler._class_index_value
         return self.soe_handler._class_index_value_nested_dict
 
@@ -457,8 +455,8 @@ class MyMasterNew:
         del self.fast_scan
         del self.master
         del self.channel
-        self.manager.Shutdown()
-
+        del self.manager
+        # self.manager.Shutdown()
 
 # if __name__ == '__main__':
 #     pass
