@@ -8,8 +8,8 @@ from visitors import *
 from typing import Callable, Union
 
 FILTERS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
-HOST = "127.0.0.1"
-LOCAL = "0.0.0.0"
+HOST = "127.0.0.1"  # remote outstation
+LOCAL = "0.0.0.0"  # local masterstation
 # HOST = "192.168.1.14"
 PORT = 20000
 
@@ -19,111 +19,113 @@ stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname
 _log = logging.getLogger(__name__)
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
-_log.setLevel(logging.DEBUG)
+_log.setLevel(logging.ERROR)
+
+from master_utils import MyLogger, AppChannelListener, SOEHandler
+from master_utils import collection_callback, command_callback, restart_callback
 
 
 
+# class MyLogger(openpal.ILogHandler):
+#     """
+#         Override ILogHandler in this manner to implement application-specific logging behavior.
+#     """
+#
+#     def __init__(self):
+#         super(MyLogger, self).__init__()
+#
+#     def Log(self, entry):
+#         flag = opendnp3.LogFlagToString(entry.filters.GetBitfield())
+#         filters = entry.filters.GetBitfield()
+#         location = entry.location.rsplit('/')[-1] if entry.location else ''
+#         message = entry.message
+#         _log.debug('LOG\t\t{:<10}\tfilters={:<5}\tlocation={:<25}\tentry={}'.format(flag, filters, location, message))
 
 
-class MyLogger(openpal.ILogHandler):
-    """
-        Override ILogHandler in this manner to implement application-specific logging behavior.
-    """
-
-    def __init__(self):
-        super(MyLogger, self).__init__()
-
-    def Log(self, entry):
-        flag = opendnp3.LogFlagToString(entry.filters.GetBitfield())
-        filters = entry.filters.GetBitfield()
-        location = entry.location.rsplit('/')[-1] if entry.location else ''
-        message = entry.message
-        _log.debug('LOG\t\t{:<10}\tfilters={:<5}\tlocation={:<25}\tentry={}'.format(flag, filters, location, message))
+# class AppChannelListener(asiodnp3.IChannelListener):
+#     """
+#         Override IChannelListener in this manner to implement application-specific channel behavior.
+#     """
+#
+#     def __init__(self):
+#         super(AppChannelListener, self).__init__()
+#
+#     def OnStateChange(self, state):
+#         _log.debug('In AppChannelListener.OnStateChange: state={}'.format(opendnp3.ChannelStateToString(state)))
 
 
-class AppChannelListener(asiodnp3.IChannelListener):
-    """
-        Override IChannelListener in this manner to implement application-specific channel behavior.
-    """
-
-    def __init__(self):
-        super(AppChannelListener, self).__init__()
-
-    def OnStateChange(self, state):
-        _log.debug('In AppChannelListener.OnStateChange: state={}'.format(opendnp3.ChannelStateToString(state)))
-
-
-class SOEHandler(opendnp3.ISOEHandler):
-    """
-        Override ISOEHandler in this manner to implement application-specific sequence-of-events behavior.
-
-        This is an interface for SequenceOfEvents (SOE) callbacks from the Master stack to the application layer.
-    """
-
-    def __init__(self):
-        super(SOEHandler, self).__init__()
-        self._class_index_value = None
-        self._class_index__value_dict = {}
-        self._class_index_value_nested_dict = {}
-    def get_class_index_value(self):
-        return self._class_index_value
-
-    def Process(self, info, values, *args, **kwargs):
-        """
-            Process measurement data.
-
-        :param info: HeaderInfo
-        :param values: A collection of values received from the Outstation (various data types are possible).
-        """
-        visitor_class_types = {
-            opendnp3.ICollectionIndexedBinary: VisitorIndexedBinary,
-            opendnp3.ICollectionIndexedDoubleBitBinary: VisitorIndexedDoubleBitBinary,
-            opendnp3.ICollectionIndexedCounter: VisitorIndexedCounter,
-            opendnp3.ICollectionIndexedFrozenCounter: VisitorIndexedFrozenCounter,
-            opendnp3.ICollectionIndexedAnalog: VisitorIndexedAnalog,
-            opendnp3.ICollectionIndexedBinaryOutputStatus: VisitorIndexedBinaryOutputStatus,
-            opendnp3.ICollectionIndexedAnalogOutputStatus: VisitorIndexedAnalogOutputStatus,
-            opendnp3.ICollectionIndexedTimeAndInterval: VisitorIndexedTimeAndInterval
-        }
-        visitor_class = visitor_class_types[type(values)]
-        visitor = visitor_class()
-        values.Foreach(visitor)  # mystery method, magic side effect
-        print("================= values type", type(values))
-
-        for index, value in visitor.index_and_value:
-            # print("=================this seems important")
-            log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
-            _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
-
-        self._class_index_value = (visitor_class, visitor.index_and_value)
-        self._class_index__value_dict[visitor_class] = visitor.index_and_value
-        # update nested dict
-        if not self._class_index_value_nested_dict.get(visitor_class):
-            self._class_index_value_nested_dict[visitor_class] = dict(visitor.index_and_value)
-        else:
-            self._class_index_value_nested_dict[visitor_class].update(dict(visitor.index_and_value))
-        # print("=============== self._class_index_value_nested_dict", self._class_index_value_nested_dict)
-        # TODO: right now there is no way to distinguish 0-value and value from non-configured points (also zero)
-        # e.g., {0: 4.0, 1: 12.0, 2: 24.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0, 8: 0.0, 9: 0.0}
-        # Need to assume a Master station knows whether certain point is configured and whether the value is valid.
-
-        # TODO: figure out where the default point configuation is at (e.g., 10 indexs for each Group)
-
-        # print("==very import== class_index_value", self._class_index_value)
-        # print("---------- import args, kwargs", *args, **kwargs) # nothing here
-        # print("---------- important info", info, type(info))
-        # print("---------- important dir(info)", info, dir(info))
-        # print('info.flagsValid', info.flagsValid, 'info.gv', info.gv,
-        #       'info.headerIndex', info.headerIndex, 'info.isEventVariation', info.isEventVariation,
-        #       'info.qualifier', info.qualifier, 'info.tsmode', info.tsmode,
-        #       '_class_index_value: ', self._class_index_value)
-        # print("_class_index__value_dict", self._class_index__value_dict)
-
-    def Start(self):
-        _log.debug('In SOEHandler.Start')
-
-    def End(self):
-        _log.debug('In SOEHandler.End')
+# class SOEHandler(opendnp3.ISOEHandler):
+#     """
+#         Override ISOEHandler in this manner to implement application-specific sequence-of-events behavior.
+#
+#         This is an interface for SequenceOfEvents (SOE) callbacks from the Master stack to the application layer.
+#     """
+#
+#     def __init__(self):
+#         super(SOEHandler, self).__init__()
+#         self._class_index_value = None
+#         self._class_index__value_dict = {}
+#         self._class_index_value_nested_dict = {}
+#     def get_class_index_value(self):
+#         return self._class_index_value
+#
+#     def Process(self, info, values, *args, **kwargs):
+#         """
+#             Process measurement data.
+#
+#         :param info: HeaderInfo
+#         :param values: A collection of values received from the Outstation (various data types are possible).
+#         """
+#         visitor_class_types = {
+#             opendnp3.ICollectionIndexedBinary: VisitorIndexedBinary,
+#             opendnp3.ICollectionIndexedDoubleBitBinary: VisitorIndexedDoubleBitBinary,
+#             opendnp3.ICollectionIndexedCounter: VisitorIndexedCounter,
+#             opendnp3.ICollectionIndexedFrozenCounter: VisitorIndexedFrozenCounter,
+#             opendnp3.ICollectionIndexedAnalog: VisitorIndexedAnalog,
+#             opendnp3.ICollectionIndexedBinaryOutputStatus: VisitorIndexedBinaryOutputStatus,
+#             opendnp3.ICollectionIndexedAnalogOutputStatus: VisitorIndexedAnalogOutputStatus,
+#             opendnp3.ICollectionIndexedTimeAndInterval: VisitorIndexedTimeAndInterval
+#         }
+#         visitor_class = visitor_class_types[type(values)]
+#         visitor = visitor_class()
+#         values.Foreach(visitor)  # mystery method, magic side effect. Seems to init visitor_class based on values (though not pythonic way)
+#
+#         print("================= values type", type(values))
+#
+#         for index, value in visitor.index_and_value:
+#             # print("=================this seems important")
+#             log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
+#             _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
+#
+#         self._class_index_value = (visitor_class, visitor.index_and_value)
+#         self._class_index__value_dict[visitor_class] = visitor.index_and_value
+#         # update nested dict
+#         if not self._class_index_value_nested_dict.get(visitor_class):
+#             self._class_index_value_nested_dict[visitor_class] = dict(visitor.index_and_value)
+#         else:
+#             self._class_index_value_nested_dict[visitor_class].update(dict(visitor.index_and_value))
+#         print("=============== self._class_index_value_nested_dict", self._class_index_value_nested_dict)
+#         # TODO: right now there is no way to distinguish 0-value and value from non-configured points (also zero)
+#         # e.g., {0: 4.0, 1: 12.0, 2: 24.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0, 8: 0.0, 9: 0.0}
+#         # Need to assume a Master station knows whether certain point is configured and whether the value is valid.
+#
+#         # TODO: figure out where the default point configuation is at (e.g., 10 indexs for each Group)
+#
+#         # print("==very import== class_index_value", self._class_index_value)
+#         # print("---------- import args, kwargs", *args, **kwargs) # nothing here
+#         # print("---------- important info", info, type(info))
+#         # print("---------- important dir(info)", info, dir(info))
+#         # print('info.flagsValid', info.flagsValid, 'info.gv', info.gv,
+#         #       'info.headerIndex', info.headerIndex, 'info.isEventVariation', info.isEventVariation,
+#         #       'info.qualifier', info.qualifier, 'info.tsmode', info.tsmode,
+#         #       '_class_index_value: ', self._class_index_value)
+#         # print("_class_index__value_dict", self._class_index__value_dict)
+#
+#     def Start(self):
+#         _log.debug('In SOEHandler.Start')
+#
+#     def End(self):
+#         _log.debug('In SOEHandler.End')
 
 
 # class MasterApplication(opendnp3.IMasterApplication):
@@ -212,31 +214,31 @@ class SOEHandler(opendnp3.ISOEHandler):
 #         _log.debug('In MasterApplication.OnTaskStart')
 
 
-def collection_callback(result=None):
-    """
-    :type result: opendnp3.CommandPointResult
-    """
-    print("Header: {0} | Index:  {1} | State:  {2} | Status: {3}".format(
-        result.headerIndex,
-        result.index,
-        opendnp3.CommandPointStateToString(result.state),
-        opendnp3.CommandStatusToString(result.status)
-    ))
-
-
-def command_callback(result: opendnp3.ICommandTaskResult = None):
-    """
-    :type result: opendnp3.ICommandTaskResult
-    """
-    print("Received command result with summary: {}".format(opendnp3.TaskCompletionToString(result.summary)))
-    result.ForeachItem(collection_callback)
-
-
-def restart_callback(result=opendnp3.RestartOperationResult()):
-    if result.summary == opendnp3.TaskCompletion.SUCCESS:
-        print("Restart success | Restart Time: {}".format(result.restartTime.GetMilliseconds()))
-    else:
-        print("Restart fail | Failure: {}".format(opendnp3.TaskCompletionToString(result.summary)))
+# def collection_callback(result=None):
+#     """
+#     :type result: opendnp3.CommandPointResult
+#     """
+#     print("Header: {0} | Index:  {1} | State:  {2} | Status: {3}".format(
+#         result.headerIndex,
+#         result.index,
+#         opendnp3.CommandPointStateToString(result.state),
+#         opendnp3.CommandStatusToString(result.status)
+#     ))
+#
+#
+# def command_callback(result: opendnp3.ICommandTaskResult = None):
+#     """
+#     :type result: opendnp3.ICommandTaskResult
+#     """
+#     print("Received command result with summary: {}".format(opendnp3.TaskCompletionToString(result.summary)))
+#     result.ForeachItem(collection_callback)
+#
+#
+# def restart_callback(result=opendnp3.RestartOperationResult()):
+#     if result.summary == opendnp3.TaskCompletion.SUCCESS:
+#         print("Restart success | Restart Time: {}".format(result.restartTime.GetMilliseconds()))
+#     else:
+#         print("Restart fail | Failure: {}".format(opendnp3.TaskCompletionToString(result.summary)))
 
 
 # def main():
@@ -290,38 +292,56 @@ class MyMasterNew:
     """
 
     def __init__(self,
+                 masterstation_ip_str: str = "0.0.0.0",
+                 outstation_ip_str: str = "127.0.0.1",
+                 port: int = 20000,
+                 masterstation_id_int: int = 2,
+                 outstation_id_int: int = 1,
+                 concurrencyHint: int = 1,
                  log_handler=asiodnp3.ConsoleLogger().Create(),
                  listener=asiodnp3.PrintingChannelListener().Create(),
                  # soe_handler=asiodnp3.PrintingSOEHandler().Create(),
                  soe_handler=SOEHandler(),
                  master_application=asiodnp3.DefaultMasterApplication().Create(),
-                 stack_config=None):
-        _log.debug('Creating a DNP3Manager.')
-        self.log_handler = log_handler
-        self.manager = asiodnp3.DNP3Manager(1, self.log_handler)
 
-        _log.debug('Creating the DNP3 channel, a TCP client.')
-        self.retry = asiopal.ChannelRetry().Default()
+                 stack_config=None):
+        """
+
+        """
+
+        self.log_handler = log_handler
         self.listener = listener
-        self.channel = self.manager.AddTCPClient("tcpclient",
-                                                 FILTERS,
-                                                 self.retry,
-                                                 HOST,
-                                                 LOCAL,
-                                                 PORT,
-                                                 self.listener)
+        self.soe_handler: SOEHandler = soe_handler
+        self.master_application = master_application
 
         _log.debug('Configuring the DNP3 stack.')
         self.stack_config = stack_config
         if not self.stack_config:
             self.stack_config = asiodnp3.MasterStackConfig()
             self.stack_config.master.responseTimeout = openpal.TimeDuration().Seconds(2)
-            self.stack_config.link.RemoteAddr = 1  # meaning for outstation, use 1 to follow simulator's default
-            self.stack_config.link.LocalAddr = 2  # meaning for master station, use 2 to follow simulator's default
+            self.stack_config.link.RemoteAddr = outstation_id_int  # meaning for outstation, use 1 to follow simulator's default
+            self.stack_config.link.LocalAddr = masterstation_id_int  # meaning for master station, use 2 to follow simulator's default
 
+        # init steps: DNP3Manager(manager) -> TCPClient(channel) -> Master(master)
+        # init DNP3Manager(manager)
+        _log.debug('Creating a DNP3Manager.')
+        self.manager = asiodnp3.DNP3Manager(concurrencyHint, self.log_handler)
+
+        # init TCPClient(channel)
+        _log.debug('Creating the DNP3 channel, a TCP client.')
+        self.retry = asiopal.ChannelRetry().Default()
+        level = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS  # seems not working
+        self.channel = self.manager.AddTCPClient("tcpclient",
+                                                 level,
+                                                 self.retry,
+                                                 outstation_ip_str,
+                                                 masterstation_ip_str,
+                                                 port,
+                                                 self.listener)
+
+
+        # init Master(master)
         _log.debug('Adding the master to the channel.')
-        self.soe_handler: SOEHandler = soe_handler
-        self.master_application = master_application
         self.master = self.channel.AddMaster("master",
                                              # asiodnp3.PrintingSOEHandler().Create(),
                                              self.soe_handler,
@@ -330,7 +350,7 @@ class MyMasterNew:
 
         _log.debug('Configuring some scans (periodic reads).')
         # Set up a "slow scan", an infrequent integrity poll that requests events and static data for all classes.
-        self.slow_scan = self.master.AddClassScan(opendnp3.ClassField().AllClasses(),
+        self.slow_scan = self.master.AddClassScan(opendnp3.ClassField().AllClasses(),  #TODO: add interface entrypoint
                                                   openpal.TimeDuration().Minutes(30),
                                                   opendnp3.TaskConfig().Default())
         # Set up a "fast scan", a relatively-frequent exception poll that requests events and class 1 static data.
@@ -338,8 +358,10 @@ class MyMasterNew:
                                                   openpal.TimeDuration().Minutes(1),
                                                   opendnp3.TaskConfig().Default())
 
-        self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
+        self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))  #TODO: add interface entrypoint
         self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
+        # self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.NOTHING))  # TODO: add interface entrypoint
+        # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.NOTHING))
 
         _log.debug('Enabling the master. At this point, traffic will start to flow between the Master and Outstations.')
         self.master.Enable()
@@ -422,7 +444,10 @@ class MyMasterNew:
         """
         # self.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
         #                 config=opendnp3.TaskConfig().Default())
-        self.master.ScanRange(gvId=gvId, start=index_start, stop=index_stop,
+        # self.master.ScanRange(gvId=gvId, start=index_start, stop=index_stop,
+        #                       config=config)
+
+        self.master.ScanAllObjects(gvId=gvId,
                               config=config)
         # return self.soe_handler._class_index_value
         return self.soe_handler._class_index_value_nested_dict

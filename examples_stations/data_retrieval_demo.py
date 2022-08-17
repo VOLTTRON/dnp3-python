@@ -86,8 +86,10 @@ def main():
                 # cmd_interface_outstation.application.apply_update(opendnp3.Binary(p_val), i)
                 cmd_interface_outstation.application.apply_update(opendnp3.Binary(True), i)
 
-        sleep(0.41)  # TODO: since it is aychnous, need this walk-around to assure update
-
+        if count == 1:
+            sleep(2.41)  # TODO: since it is aychnous, need this walk-around to assure update
+        else:
+            sleep(0.41)
         # master station retrieve value
 
         # for testing purpose, the index no.3 is empty, i.e., it will return 0 always.
