@@ -25,7 +25,7 @@ stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
 
 _log = logging.getLogger(__name__)
-_log = logging.getLogger("data_retrieval_demo")
+_log = logging.getLogger("data_retrieval_demo_master")
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 
@@ -52,7 +52,7 @@ def main():
 
     # cmd_interface.startup()
     count = 0
-    while count < 20:
+    while count < 4:
 
         count += 1
         print(datetime.datetime.now(), "============count ", count, )

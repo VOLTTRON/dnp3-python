@@ -305,7 +305,7 @@ class MyMasterNew:
 
                  stack_config=None):
         """
-
+        TODO: docstring here
         """
 
         self.log_handler = log_handler
@@ -330,21 +330,21 @@ class MyMasterNew:
         _log.debug('Creating the DNP3 channel, a TCP client.')
         self.retry = asiopal.ChannelRetry().Default()
         level = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS  # seems not working
-        self.channel = self.manager.AddTCPClient("tcpclient",
-                                                 level,
-                                                 self.retry,
-                                                 outstation_ip_str,
-                                                 masterstation_ip_str,
-                                                 port,
-                                                 self.listener)
+        self.channel = self.manager.AddTCPClient(id="tcpclient",
+                                                 levels=level,
+                                                 retry=self.retry,
+                                                 host=outstation_ip_str,
+                                                 local=masterstation_ip_str,
+                                                 port=port,
+                                                 listener=self.listener)
 
         # init Master(master)
         _log.debug('Adding the master to the channel.')
-        self.master = self.channel.AddMaster("master",
-                                             # asiodnp3.PrintingSOEHandler().Create(),
-                                             self.soe_handler,
-                                             self.master_application,
-                                             self.stack_config)
+        self.master = self.channel.AddMaster(id="master",
+                                             SOEHandler=self.soe_handler,
+                                             # SOEHandler=asiodnp3.PrintingSOEHandler().Create(),
+                                             application=self.master_application,
+                                             config=self.stack_config)
 
         _log.debug('Configuring some scans (periodic reads).')
         # Set up a "slow scan", an infrequent integrity poll that requests events and static data for all classes.
@@ -451,11 +451,13 @@ class MyMasterNew:
         return self.soe_handler._class_index_value_nested_dict
 
     def shutdown(self):
+        # print("=======before master del self.__dict", self.__dict__)
         del self.slow_scan
         del self.fast_scan
         del self.master
         del self.channel
         del self.manager
+        # print("=======after master del self.__dict", self.__dict__)
         # self.manager.Shutdown()
 
 # if __name__ == '__main__':

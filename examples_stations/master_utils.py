@@ -68,7 +68,12 @@ class SOEHandler(opendnp3.ISOEHandler):
     def get_class_index_value(self):
         return self._class_index_value
 
-    def Process(self, info, values, *args, **kwargs):
+    def Process(self, info,
+                values: Union[opendnp3.ICollectionIndexedAnalog,
+                              opendnp3.ICollectionIndexedBinary,
+                              opendnp3.ICollectionIndexedAnalogOutputStatus,
+                              opendnp3.ICollectionIndexedBinaryOutputStatus],
+                *args, **kwargs):
         """
             Process measurement data.
 
@@ -90,6 +95,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         values.Foreach(visitor)  # mystery method, magic side effect. Seems to init visitor_class based on values (though not pythonic way)
 
         print("================= values type", type(values))
+        print("=====values.count", values.Count())
 
         for index, value in visitor.index_and_value:
             # print("=================this seems important")

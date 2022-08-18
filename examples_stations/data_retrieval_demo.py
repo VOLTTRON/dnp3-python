@@ -6,14 +6,16 @@ import sys
 from datetime import datetime
 from pydnp3 import opendnp3, openpal
 # from master import MyMaster, MyLogger, AppChannelListener, SOEHandler, MasterApplication
-from master import command_callback, restart_callback
+# from master import command_callback, restart_callback
 
 from pydnp3 import asiodnp3 as asiodnp3
 
 # from master_cmd import MasterCmd
 # from master_new import MasterCmdNew
 from master_new import MyMasterNew, MyLogger, AppChannelListener
-from outstation_cmd import OutstationCmd
+# from outstation_cmd import OutstationCmd
+
+from outstation_new import MyOutStationNew
 
 import visitors
 
@@ -42,7 +44,8 @@ def main():
     #                                  master_application=MasterApplication())
     master_application = MyMasterNew()
     _log.debug('Initialization complete. Master Station in command loop.')
-    cmd_interface_outstation = OutstationCmd()
+    # cmd_interface_outstation = OutstationCmd()
+    outstation_application = MyOutStationNew()
     _log.debug('Initialization complete. OutStation in command loop.')
 
     sleep(2)  # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
@@ -73,7 +76,10 @@ def main():
             for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
                 p_val = random.choice(pts)
                 print(f"====== Outstation update index {i} with {p_val}")
-                cmd_interface_outstation.application.apply_update(opendnp3.Analog(float(p_val)), i)
+                # cmd_interface_outstation.application.apply_update(opendnp3.Analog(float(p_val)), i)
+                outstation_application.apply_update(opendnp3.Analog(value=float(p_val),
+                                                                    flags=opendnp3.Flags(24),
+                                                                    time=opendnp3.DNPTime(3094)), i)
 
         # update binaryInput value as well
         if count % 3 == 1:
@@ -84,7 +90,8 @@ def main():
                 p_val = random.choice(pts)
                 print(f"====== Outstation update index {i} with {p_val}")
                 # cmd_interface_outstation.application.apply_update(opendnp3.Binary(p_val), i)
-                cmd_interface_outstation.application.apply_update(opendnp3.Binary(True), i)
+                # cmd_interface_outstation.application.apply_update(opendnp3.Binary(True), i)
+                outstation_application.apply_update(opendnp3.Binary(True), i)
 
         if count == 1:
             sleep(2.41)  # TODO: since it is aychnous, need this walk-around to assure update
@@ -223,6 +230,8 @@ def main():
 
         sleep(1)
     _log.debug('Exiting.')
+    master_application.shutdown()
+    outstation_application.shutdown()
     # cmd_interface_outstation.do_quit("something")
     # cmd_interface_master.do_quit("something")
     # quit()
