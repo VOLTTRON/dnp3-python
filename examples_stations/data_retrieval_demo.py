@@ -70,9 +70,9 @@ def main():
 
         # outstation update point value (slower than master station query)
         if count % 3 == 1:
-            point_values_0 = [4.0, 7.0, 2.0]
-            point_values_1 = [14.0, 17.0, 12.0]
-            point_values_2 = [24.0, 27.0, 22.0]
+            point_values_0 = [4.8, 7.8, 2.8]
+            point_values_1 = [14.1, 17.1, 12.1]
+            point_values_2 = [24.2, 27.2, 22.2]
             for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
                 p_val = random.choice(pts)
                 print(f"====== Outstation update index {i} with {p_val}")
@@ -112,15 +112,41 @@ def main():
         # print(f"===important log _class_index_value ==== {count}",
         #       master_application.soe_handler._class_index_value)
 
-        result = master_application.retrieve_point_vals(gvId=opendnp3.GroupVariationID(30, 1),
-                            index_start=0,
-                            index_stop=3,
-                            config=opendnp3.TaskConfig().Default()
-                            )
+        # result = master_application.retrieve_point_vals(gvId=opendnp3.GroupVariationID(30, 1),
+        #                     index_start=0,
+        #                     index_stop=3,
+        #                     config=opendnp3.TaskConfig().Default()
+        #                     )
+        result = master_application.retrieve_point_vals(gvId=opendnp3.GroupVariationID(30, 5),
+                                                        index_start=0,
+                                                        index_stop=3,
+                                                        config=opendnp3.TaskConfig().Default()
+                                                        )  # Note: this is working
+        result = master_application.retrieve_point_vals(gvId=opendnp3.GroupVariationID(1, 2),
+                                                        index_start=0,
+                                                        index_stop=3,
+                                                        config=opendnp3.TaskConfig().Default()
+                                                        )  # Note: this is working
+        # TODO: Note: this is very intriguing:
+        # by default, the master station will scan GroupVariationID(30, 1)-Int32,
+        # instead of GroupVariationID(30, 5)-float, S
+        # As a result, GroupVariationID(30, 5) needs to be specified, otherwise, we only get int falue.
 
+
+        # result = master_application.retrieve_point_vals(gvId=opendnp3.GroupVariationID(1, 2),
+        #                                                 index_start=0,
+        #                                                 index_stop=3,
+        #                                                 config=opendnp3.TaskConfig().Default()
+        #                                                 )
+
+        # print(f"===important log _class_index_value ==== {count}",
+        #       result.get(visitors.VisitorIndexedAnalog),
+        #       result.get(visitors.VisitorIndexedBinary),
+        #       )
+        from pydnp3.opendnp3 import GroupVariation
         print(f"===important log _class_index_value ==== {count}",
-              result.get(visitors.VisitorIndexedAnalog),
-              result.get(visitors.VisitorIndexedBinary),
+              result.get(GroupVariation.Group30Var5),
+              result.get(GroupVariation.Group1Var2),
               )
 
         # print(f"===import log _class_index_value_dict ==== {count}",

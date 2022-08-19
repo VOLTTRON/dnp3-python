@@ -65,6 +65,8 @@ class SOEHandler(opendnp3.ISOEHandler):
         self._class_index_value = None
         self._class_index__value_dict = {}
         self._class_index_value_nested_dict = {}
+        self._gv_index_value_nested_dict = {}
+
     def get_class_index_value(self):
         return self._class_index_value
 
@@ -94,8 +96,8 @@ class SOEHandler(opendnp3.ISOEHandler):
         visitor = visitor_class()
         values.Foreach(visitor)  # mystery method, magic side effect. Seems to init visitor_class based on values (though not pythonic way)
 
-        print("================= values type", type(values))
-        print("=====values.count", values.Count())
+        # print("================= values type", type(values))
+        # print("=====values.count", values.Count())
 
         for index, value in visitor.index_and_value:
             # print("=================this seems important")
@@ -109,12 +111,18 @@ class SOEHandler(opendnp3.ISOEHandler):
             self._class_index_value_nested_dict[visitor_class] = dict(visitor.index_and_value)
         else:
             self._class_index_value_nested_dict[visitor_class].update(dict(visitor.index_and_value))
-        print("=============== self._class_index_value_nested_dict", self._class_index_value_nested_dict)
+        # print("=============== self._class_index_value_nested_dict", self._class_index_value_nested_dict)
         # TODO: right now there is no way to distinguish 0-value and value from non-configured points (also zero)
         # e.g., {0: 4.0, 1: 12.0, 2: 24.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0, 8: 0.0, 9: 0.0}
         # Need to assume a Master station knows whether certain point is configured and whether the value is valid.
 
         # TODO: figure out where the default point configuation is at (e.g., 10 indexs for each Group)
+
+        if not self._gv_index_value_nested_dict.get(info.gv):
+            self._gv_index_value_nested_dict[info.gv] = dict(visitor.index_and_value)
+        else:
+            self._gv_index_value_nested_dict[info.gv].update(dict(visitor.index_and_value))
+        print("=============== self._gv_index_value_nested_dict", self._gv_index_value_nested_dict)
 
         # print("==very import== class_index_value", self._class_index_value)
         # print("---------- import args, kwargs", *args, **kwargs) # nothing here

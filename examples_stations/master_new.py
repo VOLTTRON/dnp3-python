@@ -448,7 +448,8 @@ class MyMasterNew:
         self.master.ScanAllObjects(gvId=gvId,
                                    config=config)
         # return self.soe_handler._class_index_value
-        return self.soe_handler._class_index_value_nested_dict
+        # return self.soe_handler._class_index_value_nested_dict
+        return self.soe_handler._gv_index_value_nested_dict
 
     def shutdown(self):
         # print("=======before master del self.__dict", self.__dict__)

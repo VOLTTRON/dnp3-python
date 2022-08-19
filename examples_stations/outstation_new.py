@@ -61,19 +61,26 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         self.outstation_id_int = outstation_id_int
 
         _log.debug('Configuring the DNP3 stack.')
+        _log.debug('Configuring the outstation database.')
         self.stack_config = self.configure_stack()  # TODO: refactor it to outside of the class
         print("=======before self.stack_config", self.stack_config.dbConfig)
 
-        # Note: this doesn't seem to work
+        # TODO: Justify if this is is really working? (Not sure if it really takes effect yet.)
+        #  but needs to add docstring. Search for "intriguing" in "data_retrieval_demo.py"
         # Note: dbconfig signature at cpp/libs/include/asiodnp3/DatabaseConfig.h
         # which has sizes parameter
-        _log.debug('Configuring the outstation database.')
-        # self.configure_database(self.stack_config.dbConfig)  # TODO: refactor it to outside of the class.
-
-        # print("=======experiment", self.stack_config.dbConfig.binary.toView)
-        openpal.ArrayBinaryConfig
-        print("=======after self.stack_config", self.stack_config.dbConfig)
-        print("=======experiment", self.stack_config.dbConfig.sizes.numAnalog)
+        self.configure_database(self.stack_config.dbConfig)  # TODO: refactor it to outside of the class.
+        # print("=====verify self.stack_config.dbConfig.analog[0].svariation",
+        #       self.stack_config.dbConfig.analog[0].svariation)
+        # self.stack_config.dbConfig.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var5
+        # print("=====verify again self.stack_config.dbConfig.analog[0].svariation",
+        #       self.stack_config.dbConfig.analog[0].svariation)
+        #
+        # print("====self.stack_config.dbConfig.analog[0].svariation type", type(self.stack_config.dbConfig.analog[0].svariation ))
+        #
+        # # print("=======experiment", self.stack_config.dbConfig.binary.toView)
+        # print("=======after self.stack_config", self.stack_config.dbConfig)
+        # print("=======experiment", self.stack_config.dbConfig.sizes.numAnalog)
 
 
         # threads_to_allocate = 1
@@ -152,9 +159,33 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
             Configure two Analog points (group/variation 30.1) at indexes 0, 1.
             Configure two Binary points (group/variation 1.2) at indexes 1 and 2.
         """
+        # TODO: figure out the right way to configure
+        print("===========db_config type", type(db_config))  # asiodnp3.DatabaseConfig
+        # try:
+        #     print("===========db_config __dict__", db_config.__dict__)
+        # except Exception as e:
+        #     pass
+        # try:
+        #     print("===========db_config _asdict()", db_config._asdict())
+        # except:
+        #     pass
+        # try:
+        #     print("===========db_config vars()", vars(db_config))
+        # except:
+        #     pass
+
+        print("===========db_config.analog type", type(db_config.analog))  # openpal.ArrayAnalogConfig'
+        openpal.ArrayAnalogConfig
+        print("===========db_config.analog[0] type", type(db_config.analog[0]))  # opendnp3.AnalogConfig'
+        opendnp3.AnalogConfig
+        print("===========db_config.analog.__getitem__(0)", db_config.analog.__getitem__(0))  # openpal.ArrayAnalogConfig'
+
+
+
         # AnalogInput
         db_config.analog[0].clazz = opendnp3.PointClass.Class2
-        db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        # db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
+        db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var5  # note: experiment, Analog input - double-precision, floating-point with flag ref: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html#aa326dc3592a41ae60222051044fb084f
         db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
         db_config.analog[1].clazz = opendnp3.PointClass.Class2
         db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
@@ -181,6 +212,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         db_config.boStatus[0].clazz = opendnp3.PointClass.Class2
         db_config.boStatus[0].svariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
         # db_config.boStatus[0].evariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
+
 
     def shutdown(self):
         """
