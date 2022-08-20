@@ -103,24 +103,26 @@ class SOEHandler(opendnp3.ISOEHandler):
             log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
             _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
 
-        self._class_index_value = (visitor_class, visitor.index_and_value)
-        self._class_index__value_dict[visitor_class] = visitor.index_and_value
-        # update nested dict
-        if not self._class_index_value_nested_dict.get(visitor_class):
-            self._class_index_value_nested_dict[visitor_class] = dict(visitor.index_and_value)
-        else:
-            self._class_index_value_nested_dict[visitor_class].update(dict(visitor.index_and_value))
-        # print("=============== self._class_index_value_nested_dict", self._class_index_value_nested_dict)
-        # TODO: right now there is no way to distinguish 0-value and value from non-configured points (also zero)
-        # e.g., {0: 4.0, 1: 12.0, 2: 24.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0, 8: 0.0, 9: 0.0}
-        # Need to assume a Master station knows whether certain point is configured and whether the value is valid.
+        # TODO: it seems the visitor is not very efficient
 
-        # TODO: figure out where the default point configuation is at (e.g., 10 indexs for each Group)
+        # self._class_index_value = (visitor_class, visitor.index_and_value)
+        # self._class_index__value_dict[visitor_class] = visitor.index_and_value
+        # # update nested dict
+        # if not self._class_index_value_nested_dict.get(visitor_class):
+        #     self._class_index_value_nested_dict[visitor_class] = dict(visitor.index_and_value)
+        # else:
+        #     self._class_index_value_nested_dict[visitor_class].update(dict(visitor.index_and_value))
+        # # print("=============== self._class_index_value_nested_dict", self._class_index_value_nested_dict)
 
         if not self._gv_index_value_nested_dict.get(info.gv):
-            self._gv_index_value_nested_dict[info.gv] = dict(visitor.index_and_value)
+            # self._gv_index_value_nested_dict[info.gv] = dict(visitor.index_and_value)
+            self.gv_index_value_nested_dict[info.gv] = dict(visitor.index_and_value)
         else:
-            self._gv_index_value_nested_dict[info.gv].update(dict(visitor.index_and_value))
+            # self._gv_index_value_nested_dict[info.gv].update(dict(visitor.index_and_value))
+            self.gv_index_value_nested_dict[info.gv].update(dict(visitor.index_and_value))
+
+        # time.sleep(1)  # TODO: wait for the
+        print("=============== dict(visitor.index_and_value)", dict(visitor.index_and_value))
         print("=============== self._gv_index_value_nested_dict", self._gv_index_value_nested_dict)
 
         # print("==very import== class_index_value", self._class_index_value)

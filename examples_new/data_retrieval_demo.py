@@ -5,26 +5,12 @@ import sys
 from datetime import datetime
 from pydnp3 import opendnp3
 
-
-
-# from master_new import MyMasterNew
 from dnp3_python.master_new import MyMasterNew
-# from src.dnp3_python.master_new import MyMasterNew
 
-# from src.dnp3_python.master_new import MyMasterNew  # TODO: polish the scaffolding
-# from outstation_cmd import OutstationCmd
-
-# from outstation_new import MyOutStationNew
-# from src.dnp3_python.outstation_new import MyOutStationNew
 from dnp3_python.outstation_new import MyOutStationNew
 
-# import visitors
-# from src.dnp3_python import visitors
-from dnp3_python import visitors
-
-from time import sleep
-
 import datetime
+from time import sleep
 
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
@@ -48,12 +34,12 @@ def main():
     #  since it would not update immediately
 
     # cmd_interface.startup()
+
     count = 0
-    while count < 10:
+    while count < 2:
 
         count += 1
         print(datetime.datetime.now(), "============count ", count, )
-        sleep(1)  # Note: hard-coded, master station query every 1 sec
 
         # plan: there are 3 AnalogInput Points,
         # outstation will randomly pick from
@@ -86,32 +72,30 @@ def main():
                 # cmd_interface_outstation.application.apply_update(opendnp3.Binary(True), i)
                 outstation_application.apply_update(opendnp3.Binary(True), i)
 
-        if count == 1:
-            sleep(2.41)  # TODO: since it is aychnous, need this walk-around to assure update
-        else:
-            sleep(0.41)
-        # master station retrieve value
-        # for testing purpose, the index no.3 is empty, i.e., it will return 0 always.
-
+        # master station retrieve outstation point values
         result = master_application.retrieve_all_obj_by_gvid(gvid=opendnp3.GroupVariationID(30, 6),
                                                              config=opendnp3.TaskConfig().Default()
-                                                             )  # Note: this is working
-        print(f"===important log _class_index_value ==== {count}",
+                                                             )
+        print(f"===important log retrieve_all_obj_by_gvid GroupVariationID(30, 6)==== {count}",
               result)
-        result = master_application.retrieve_all_obj_by_gvids(gvid=opendnp3.GroupVariationID(1, 2),
+        result = master_application.retrieve_all_obj_by_gvid(gvid=opendnp3.GroupVariationID(1, 2),
                                                              config=opendnp3.TaskConfig().Default()
-                                                             )  # Note: this is working
-        print(f"===important log _class_index_value ==== {count}",
+                                                             )
+        print(f"===important log retrieve_all_obj_by_gvid GroupVariationID(1, 2) ==== {count}",
               result)
+
+        result = master_application.retrieve_all_obj_by_gvids()
+        print(f"===important log retrieve_all_obj_by_gvids default ==== {count}",
+              result)
+
+        sleep(1)  # Note: hard-coded, master station query every 1 sec. Also the sleep needs to be at the end to shutdown
 
     _log.debug('Exiting.')
     master_application.shutdown()
     outstation_application.shutdown()
-    # cmd_interface_outstation.do_quit("something")
-    # cmd_interface_master.do_quit("something")
-    # quit()
-    # quit()
-    # TODO: shutdown gracefully
+
+    # TODO: shutdown gracefully. (right now outstation/server relies on
+    #  "Process finished with exit code 134 (interrupted by signal 6: SIGABRT)")
 
 
 if __name__ == '__main__':
