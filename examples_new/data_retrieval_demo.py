@@ -42,7 +42,7 @@ def main():
     outstation_application = MyOutStationNew()
     _log.debug('Initialization complete. OutStation in command loop.')
 
-    sleep(2)  # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
+    # sleep(2)  # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
     # Note: if without sleep(2) there will be a glitch when first send_select_and_operate_command
     #  (i.e., all the values are zero, [(0, 0.0), (1, 0.0), (2, 0.0), (3, 0.0)]))
     #  since it would not update immediately
@@ -53,6 +53,7 @@ def main():
 
         count += 1
         print(datetime.datetime.now(), "============count ", count, )
+        sleep(1)  # Note: hard-coded, master station query every 1 sec
 
         # plan: there are 3 AnalogInput Points,
         # outstation will randomly pick from
@@ -97,17 +98,12 @@ def main():
                                                              )  # Note: this is working
         print(f"===important log _class_index_value ==== {count}",
               result)
-        result = master_application.retrieve_all_obj_by_gvid(gvid=opendnp3.GroupVariationID(1, 2),
+        result = master_application.retrieve_all_obj_by_gvids(gvid=opendnp3.GroupVariationID(1, 2),
                                                              config=opendnp3.TaskConfig().Default()
                                                              )  # Note: this is working
         print(f"===important log _class_index_value ==== {count}",
               result)
-        # TODO: Note: this is very intriguing:
-        # by default, the master station will scan GroupVariationID(30, 1)-Int32,
-        # instead of GroupVariationID(30, 5)-float, S
-        # As a result, GroupVariationID(30, 5) needs to be specified, otherwise, we only get int falue.
 
-        sleep(1)
     _log.debug('Exiting.')
     master_application.shutdown()
     outstation_application.shutdown()

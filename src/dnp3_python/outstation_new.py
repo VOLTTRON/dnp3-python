@@ -63,7 +63,6 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         _log.debug('Configuring the DNP3 stack.')
         _log.debug('Configuring the outstation database.')
         self.stack_config = self.configure_stack()  # TODO: refactor it to outside of the class
-        print("=======before self.stack_config", self.stack_config.dbConfig)
 
         # TODO: Justify if this is is really working? (Not sure if it really takes effect yet.)
         #  but needs to add docstring. Search for "intriguing" in "data_retrieval_demo.py"
@@ -160,27 +159,6 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
             Configure two Binary points (group/variation 1.2) at indexes 1 and 2.
         """
         # TODO: figure out the right way to configure
-        print("===========db_config type", type(db_config))  # asiodnp3.DatabaseConfig
-        # try:
-        #     print("===========db_config __dict__", db_config.__dict__)
-        # except Exception as e:
-        #     pass
-        # try:
-        #     print("===========db_config _asdict()", db_config._asdict())
-        # except:
-        #     pass
-        # try:
-        #     print("===========db_config vars()", vars(db_config))
-        # except:
-        #     pass
-
-        print("===========db_config.analog type", type(db_config.analog))  # openpal.ArrayAnalogConfig'
-        openpal.ArrayAnalogConfig
-        print("===========db_config.analog[0] type", type(db_config.analog[0]))  # opendnp3.AnalogConfig'
-        opendnp3.AnalogConfig
-        print("===========db_config.analog.__getitem__(0)", db_config.analog.__getitem__(0))  # openpal.ArrayAnalogConfig'
-
-
 
         # AnalogInput
         db_config.analog[0].clazz = opendnp3.PointClass.Class2
@@ -222,16 +200,6 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         """
         # TODO: cannot shutdown: see Outstation and master hang on shutdown #1 at
         # https: // github.com / ChargePoint / pydnp3 / issues / 1
-
-        # _log.debug('Exiting application...')
-        # _log.debug('Shutting down outstation...')
-        # OutstationApplication.set_outstation(None)
-        # _log.debug('Shutting down stack config...')
-        # self.stack_config = None
-        # _log.debug('Shutting down channel...')
-        # self.channel = None
-        # _log.debug('Shutting down DNP3Manager...')
-        # self.manager = None
 
         _outstation = self.get_outstation()
         del _outstation
