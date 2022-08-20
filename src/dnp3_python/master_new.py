@@ -3,9 +3,9 @@ import sys
 import time
 
 from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
-from visitors import *
-
-from typing import Callable, Union
+# from visitors import *
+from .visitors import *
+from typing import Callable, Union, Dict
 
 FILTERS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
 HOST = "127.0.0.1"  # remote outstation
@@ -21,8 +21,12 @@ _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 _log.setLevel(logging.ERROR)
 
-from master_utils import MyLogger, AppChannelListener, SOEHandler
-from master_utils import collection_callback, command_callback, restart_callback
+from .master_utils import MyLogger, AppChannelListener, SOEHandler
+from .master_utils import parsing_gvId_to_gvCls
+from .master_utils import collection_callback, command_callback, restart_callback
+
+# alias DbPointVal
+DbPointVal = Union[float, int, bool]
 
 
 # class MyLogger(openpal.ILogHandler):
@@ -418,27 +422,37 @@ class MyMasterNew:
         """
         self.master.SelectAndOperate(command_set, callback, config)
 
-    def retrieve_point_vals(self, gvId,
-                            index_start: int,
-                            index_stop: int,
-                            config=opendnp3.TaskConfig().Default()
-                            ):
-        """Summary line.
+    def retrieve_all_obj_by_gvId(self, gvId: opendnp3.GroupVariationID,
+                                 config=opendnp3.TaskConfig().Default()
+                                 ) -> Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]:
+        """Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
 
-        Extended description of function.
+        Common gvId: ref: dnp3 Namespace Reference: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html
+        TODO: rewrite opendnp3.GroupVariationID to add docstring
+        for static state
+            GroupVariationID(30, 6): Analog input - double-precision, floating-point with flag
+            GroupVariationID(30, 1): Analog input - 32-bit with flag
+            GroupVariationID(1, 2): Binary input - with flags
 
-        :param int arg1: Description of arg1.
-        :param str arg2: Description of arg2.
-        :raise: ValueError if arg1 is equal to arg2
-        :return: Description of return value
-        :rtype: bool
+            GroupVariationID(40, 4): Analog Output Status - Double-precision floating point with flags
+            GroupVariationID(40, 1): Analog Output Status - 32-bit with flags
+            GroupVariationID(10, 2): Binary Output - With flags
+        for event
+            GroupVariationID(32, 4): Analog Input Event - 16-bit with time
+            GroupVariationID(2, 2): Binary Input Event - With absolute time
+            GroupVariationID(42, 8): Analog Output Event - Double-preicions floating point with time
+            GroupVariationID(11, 2): Binary Output Event - With time
+
+        :param opendnp3.GroupVariationID gvId: group-variance Id
+        :param opendnp3.TaskConfig config: Task configuration. Default: opendnp3.TaskConfig().Default()
+
+        :return: retrieved point values stored in a nested dict.
+        :rtype: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]
 
         :example:
-
-        >>> a=1
-        >>> b=2
-        >>> func(a,b)
-        True
+        >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
+        >>> master_application.retrieve_all_obj_by_gvId(gvId=opendnp3.GroupVariationID(30, 6))
+        GroupVariation.Group30Var6: {0: 4.8, 1: 12.1, 2: 24.2, 3: 0.0}}
         """
         # self.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
         #                 config=opendnp3.TaskConfig().Default())
@@ -447,9 +461,8 @@ class MyMasterNew:
 
         self.master.ScanAllObjects(gvId=gvId,
                                    config=config)
-        # return self.soe_handler._class_index_value
-        # return self.soe_handler._class_index_value_nested_dict
-        return self.soe_handler._gv_index_value_nested_dict
+        gv_cls: opendnp3.GroupVariation = parsing_gvId_to_gvCls(gvId)
+        return {gv_cls: self.soe_handler.gv_index_value_nested_dict.get(gv_cls)}
 
     def shutdown(self):
         # print("=======before master del self.__dict", self.__dict__)

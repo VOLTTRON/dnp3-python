@@ -1,19 +1,13 @@
-import cmd
 import logging
-import random
 import sys
 
 from datetime import datetime
-from pydnp3 import opendnp3, openpal
+from pydnp3 import opendnp3
 # from master import MyMaster, MyLogger, AppChannelListener, SOEHandler, MasterApplication
-from master import command_callback, restart_callback
-
-from pydnp3 import asiodnp3 as asiodnp3
 
 # from master_cmd import MasterCmd
 # from master_new import MasterCmdNew
-from master_new import MyMasterNew, MyLogger, AppChannelListener
-from outstation_cmd import OutstationCmd
+from master_new import MyMasterNew
 
 import visitors
 
@@ -109,11 +103,11 @@ def main():
         # print(f"===important log _class_index_value ==== {count}",
         #       master_application.soe_handler._class_index_value)
 
-        result = master_application.retrieve_point_vals(gvId=opendnp3.GroupVariationID(30, 1),
-                            index_start=0,
-                            index_stop=3,
-                            config=opendnp3.TaskConfig().Default()
-                            )
+        result = master_application.retrieve_all_obj_by_gvId(gvId=opendnp3.GroupVariationID(30, 1),
+                                                             index_start=0,
+                                                             index_stop=3,
+                                                             config=opendnp3.TaskConfig().Default()
+                                                             )
 
         print(f"===important log _class_index_value ==== {count}",
               result.get(visitors.VisitorIndexedAnalog),
