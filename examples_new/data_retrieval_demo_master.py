@@ -103,7 +103,7 @@ def main():
         # print(f"===important log _class_index_value ==== {count}",
         #       master_application.soe_handler._class_index_value)
 
-        result = master_application.retrieve_all_obj_by_gvId(gvId=opendnp3.GroupVariationID(30, 1),
+        result = master_application.retrieve_all_obj_by_gvid(gvid=opendnp3.GroupVariationID(30, 1),
                                                              index_start=0,
                                                              index_stop=3,
                                                              config=opendnp3.TaskConfig().Default()

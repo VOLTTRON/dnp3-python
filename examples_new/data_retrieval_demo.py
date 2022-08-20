@@ -92,12 +92,12 @@ def main():
         # master station retrieve value
         # for testing purpose, the index no.3 is empty, i.e., it will return 0 always.
 
-        result = master_application.retrieve_all_obj_by_gvId(gvId=opendnp3.GroupVariationID(30, 6),
+        result = master_application.retrieve_all_obj_by_gvid(gvid=opendnp3.GroupVariationID(30, 6),
                                                              config=opendnp3.TaskConfig().Default()
                                                              )  # Note: this is working
         print(f"===important log _class_index_value ==== {count}",
               result)
-        result = master_application.retrieve_all_obj_by_gvId(gvId=opendnp3.GroupVariationID(1, 2),
+        result = master_application.retrieve_all_obj_by_gvid(gvid=opendnp3.GroupVariationID(1, 2),
                                                              config=opendnp3.TaskConfig().Default()
                                                              )  # Note: this is working
         print(f"===important log _class_index_value ==== {count}",

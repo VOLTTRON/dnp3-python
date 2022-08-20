@@ -171,23 +171,23 @@ def restart_callback(result=opendnp3.RestartOperationResult()):
         print("Restart fail | Failure: {}".format(opendnp3.TaskCompletionToString(result.summary)))
 
 
-def parsing_gvId_to_gvCls(gvId: GroupVariationID) -> GroupVariation:
+def parsing_gvid_to_gvcls(gvid: GroupVariationID) -> GroupVariation:
     """Mapping gvId to GroupVariation member class
 
-    :param opendnp3.GroupVariationID gvId: group-variance Id
+    :param opendnp3.GroupVariationID gvid: group-variance Id
 
     :return: GroupVariation member class.
     :rtype: opendnp3.GroupVariation
 
     :example:
-    >>> gv_cls = parsing_gvId_to_gvCls(gvId=GroupVariationID(30, 6))
+    >>> gv_cls = parsing_gvid_to_gvcls(gvid=GroupVariationID(30, 6))
     >>> print(gv_cls)
     GroupVariation.Group30Var6
     """
     # TODO: hard-coded for now. transfer to auto mapping
-    print("====gvId GroupVariationID", gvId)
-    group: int = gvId.group
-    variation: int = gvId.variation
+    print("====gvId GroupVariationID", gvid)
+    group: int = gvid.group
+    variation: int = gvid.variation
     gv_cls: GroupVariation
 
     if group == 30 and variation == 6:
