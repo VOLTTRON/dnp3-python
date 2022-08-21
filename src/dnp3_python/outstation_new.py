@@ -203,7 +203,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
 
             The debug messages may be helpful if errors occur during shutdown.
         """
-        # TODO: cannot shutdown: see Outstation and master hang on shutdown #1 at
+        # TODO: cannot shut down: see Outstation and master hang on shutdown #1 at
         # https: // github.com / ChargePoint / pydnp3 / issues / 1
 
         _outstation = self.get_outstation()

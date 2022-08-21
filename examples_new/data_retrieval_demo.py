@@ -22,21 +22,13 @@ _log.setLevel(logging.DEBUG)
 
 
 def main():
-
     master_application = MyMasterNew()
     _log.debug('Initialization complete. Master Station in command loop.')
     outstation_application = MyOutStationNew()
     _log.debug('Initialization complete. OutStation in command loop.')
 
-    # sleep(2)  # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
-    # Note: if without sleep(2) there will be a glitch when first send_select_and_operate_command
-    #  (i.e., all the values are zero, [(0, 0.0), (1, 0.0), (2, 0.0), (3, 0.0)]))
-    #  since it would not update immediately
-
-    # cmd_interface.startup()
-
     count = 0
-    while count < 2:
+    while count < 10:
 
         count += 1
         print(datetime.datetime.now(), "============count ", count, )
@@ -55,7 +47,6 @@ def main():
             for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
                 p_val = random.choice(pts)
                 print(f"====== Outstation update index {i} with {p_val}")
-                # cmd_interface_outstation.application.apply_update(opendnp3.Analog(float(p_val)), i)
                 outstation_application.apply_update(opendnp3.Analog(value=float(p_val),
                                                                     flags=opendnp3.Flags(24),
                                                                     time=opendnp3.DNPTime(3094)), i)
@@ -68,34 +59,37 @@ def main():
             for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
                 p_val = random.choice(pts)
                 print(f"====== Outstation update index {i} with {p_val}")
-                # cmd_interface_outstation.application.apply_update(opendnp3.Binary(p_val), i)
-                # cmd_interface_outstation.application.apply_update(opendnp3.Binary(True), i)
                 outstation_application.apply_update(opendnp3.Binary(True), i)
 
         # master station retrieve outstation point values
+        # Note: keep in mind, the db update at outstation side might not take effects immediately when a master queries.
+
+        # use case 1: retrieve float analogInput values specified by GroupVariationID(30, 6)
         result = master_application.retrieve_all_obj_by_gvid(gvid=opendnp3.GroupVariationID(30, 6),
                                                              config=opendnp3.TaskConfig().Default()
                                                              )
         print(f"===important log retrieve_all_obj_by_gvid GroupVariationID(30, 6)==== {count}",
               result)
+
+        # use case 2: retrieve binaryInput values specified by GroupVariationID(1, 2)
         result = master_application.retrieve_all_obj_by_gvid(gvid=opendnp3.GroupVariationID(1, 2),
                                                              config=opendnp3.TaskConfig().Default()
                                                              )
         print(f"===important log retrieve_all_obj_by_gvid GroupVariationID(1, 2) ==== {count}",
               result)
 
+        # use case 3: retrieve point values specified by a list of GroupVariationIDs.
+        # by default, retrieve float AnalogInput, BinaryInput, float AnalogOutput, BinaryOutput
         result = master_application.retrieve_all_obj_by_gvids()
         print(f"===important log retrieve_all_obj_by_gvids default ==== {count}",
               result)
 
-        sleep(1)  # Note: hard-coded, master station query every 1 sec. Also the sleep needs to be at the end to shutdown
+        sleep(1)  # Note: hard-coded, master station query every 1 sec.
+        # Also the sleep needs to be at the end to shut down.
 
     _log.debug('Exiting.')
     master_application.shutdown()
     outstation_application.shutdown()
-
-    # TODO: shutdown gracefully. (right now outstation/server relies on
-    #  "Process finished with exit code 134 (interrupted by signal 6: SIGABRT)")
 
 
 if __name__ == '__main__':

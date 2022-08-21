@@ -121,7 +121,7 @@ class SOEHandler(opendnp3.ISOEHandler):
             # self._gv_index_value_nested_dict[info.gv].update(dict(visitor.index_and_value))
             self.gv_index_value_nested_dict[info.gv].update(dict(visitor.index_and_value))
 
-        # time.sleep(1)  # TODO: wait for the
+        # time.sleep(1)  # TODO: wait for the internal database to update
         print("=============== dict(visitor.index_and_value)", dict(visitor.index_and_value))
         print("=============== self._gv_index_value_nested_dict", self._gv_index_value_nested_dict)
 
@@ -182,12 +182,11 @@ def parsing_gvid_to_gvcls(gvid: GroupVariationID) -> GroupVariation:
     :rtype: opendnp3.GroupVariation
 
     :example:
-    >>> gv_cls = parsing_gvid_to_gvcls(gvid=GroupVariationID(30, 6))
-    >>> print(gv_cls)
+    >>> parsing_gvid_to_gvcls(gvid=GroupVariationID(30, 6))
     GroupVariation.Group30Var6
     """
     # TODO: hard-coded for now. transfer to auto mapping
-    print("====gvId GroupVariationID", gvid)
+    # print("====gvId GroupVariationID", gvid)
     group: int = gvid.group
     variation: int = gvid.variation
     gv_cls: GroupVariation
