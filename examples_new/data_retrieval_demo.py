@@ -29,6 +29,7 @@ def main():
 
     count = 0
     while count < 10:
+        sleep(1)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
         print(datetime.datetime.now(), "============count ", count, )
@@ -66,30 +67,29 @@ def main():
         # use case 1: retrieve float analogInput values specified by GroupVariationID(30, 6)
         result = master_application.retrieve_all_obj_by_gvid(gv_id=opendnp3.GroupVariationID(30, 6),
                                                              config=opendnp3.TaskConfig().Default())
-        print(f"===important log retrieve_all_obj_by_gvid GroupVariationID(30, 6)==== {count}",
+        print(f"===important log: case1 retrieve_all_obj_by_gvid GroupVariationID(30, 6)==== {count}",
               result)
 
         # use case 2: retrieve binaryInput values specified by GroupVariationID(1, 2)
         result = master_application.retrieve_all_obj_by_gvid(gv_id=opendnp3.GroupVariationID(1, 2),
                                                              config=opendnp3.TaskConfig().Default())
-        print(f"===important log retrieve_all_obj_by_gvid GroupVariationID(1, 2) ==== {count}",
+        print(f"===important log: case2 retrieve_all_obj_by_gvid GroupVariationID(1, 2) ==== {count}",
               result)
 
         # # use case 3: retrieve point values specified by a list of GroupVariationIDs.
         # # by default, retrieve float AnalogInput, BinaryInput, float AnalogOutput, BinaryOutput
         # result = master_application.retrieve_all_obj_by_gvids()
-        # print(f"==={datetime.datetime.now()} important log retrieve_all_obj_by_gvids default ==== {count}",
+        # print(f"===important log: case3 retrieve_all_obj_by_gvids default ==== {count}",
         #       result)
 
         # use case 4: retrieve point values specified by a list of GroupVariationIDs.
         # demo float AnalogInput, BinaryInput,
         result = master_application.retrieve_all_obj_by_gvids(gv_ids=[opendnp3.GroupVariationID(30, 6),
                                                                       opendnp3.GroupVariationID(1, 2)])
-        print(f"==={datetime.datetime.now()} important log retrieve_all_obj_by_gvids default ==== {count}",
+        print(f"===important log: case4 retrieve_all_obj_by_gvids default ==== {count}", datetime.datetime.now(),
               result)
 
-        sleep(3)  # Note: hard-coded, master station query every 1 sec.
-        # Also the sleep needs to be at the end to shut down.
+
 
     _log.debug('Exiting.')
     master_application.shutdown()

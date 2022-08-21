@@ -205,7 +205,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         """
         # TODO: cannot shut down: see Outstation and master hang on shutdown #1 at
         # https: // github.com / ChargePoint / pydnp3 / issues / 1
-
+        time.sleep(2)  # Note: hard-coded sleep to avoid hanging process
         _outstation = self.get_outstation()
         del _outstation
         del self.channel

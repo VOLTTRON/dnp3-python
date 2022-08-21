@@ -227,12 +227,12 @@ class MyMasterNew:
 
         # TODO: refactor hard-coded retry and sleep, allow config
         # TODO: "prettify" the following while loop workflow. e.g., helper function + recurrent function
-        # retry logic to improve performance
-        # self.master.ScanAllObjects(gvId=gv_id,
-        #                            config=config)
+        self.master.ScanAllObjects(gvId=gv_id,
+                                   config=config)
         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
         gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
 
+        # retry logic to improve performance
         n_retry = 5
         sleep_delay = 1
         while gv_db_val is None and n_retry > 0:
@@ -313,6 +313,7 @@ class MyMasterNew:
 
     def shutdown(self):
         # print("=======before master del self.__dict", self.__dict__)
+        time.sleep(2)  # Note: hard-coded sleep to avoid hanging process
         del self.slow_scan
         del self.fast_scan
         del self.master
