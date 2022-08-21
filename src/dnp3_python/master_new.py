@@ -226,9 +226,10 @@ class MyMasterNew:
         # db_val = {gv_cls: self.soe_handler.gv_index_value_nested_dict.get(gv_cls)}
 
         # TODO: refactor hard-coded retry and sleep, allow config
+        # TODO: "prettify" the following while loop workflow. e.g., helper function + recurrent function
         # retry logic to improve performance
-        self.master.ScanAllObjects(gvId=gv_id,
-                                   config=config)
+        # self.master.ScanAllObjects(gvId=gv_id,
+        #                            config=config)
         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
         gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
 
@@ -237,7 +238,7 @@ class MyMasterNew:
         while gv_db_val is None and n_retry > 0:
             self.master.ScanAllObjects(gvId=gv_id,
                                        config=config)
-            gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+            # gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
             time.sleep(sleep_delay)
             gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
             n_retry -= 1
