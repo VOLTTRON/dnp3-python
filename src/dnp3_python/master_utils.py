@@ -1,3 +1,4 @@
+import datetime
 import logging
 import sys
 import time
@@ -122,8 +123,9 @@ class SOEHandler(opendnp3.ISOEHandler):
             self.gv_index_value_nested_dict[info.gv].update(dict(visitor.index_and_value))
 
         # time.sleep(1)  # TODO: wait for the internal database to update
-        print("=============== dict(visitor.index_and_value)", dict(visitor.index_and_value))
-        print("=============== self._gv_index_value_nested_dict", self._gv_index_value_nested_dict)
+        # print("=============== dict(visitor.index_and_value)", dict(visitor.index_and_value), datetime.datetime.now())
+        # print("=============== self._gv_index_value_nested_dict", self._gv_index_value_nested_dict)
+        # print("=============== info.gv", info.gv)
 
         # print("==very import== class_index_value", self._class_index_value)
         # print("---------- import args, kwargs", *args, **kwargs) # nothing here

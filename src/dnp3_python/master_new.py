@@ -67,6 +67,7 @@ class MyMasterNew:
         """
         TODO: docstring here
         """
+        # TODO: refactor to apply factory pattern, allow further config
 
         self.log_handler = log_handler
         self.listener = listener
@@ -182,7 +183,7 @@ class MyMasterNew:
         """
         self.master.SelectAndOperate(command_set, callback, config)
 
-    def retrieve_all_obj_by_gvid(self, gvid: opendnp3.GroupVariationID,
+    def retrieve_all_obj_by_gvid(self, gv_id: opendnp3.GroupVariationID,
                                  config=opendnp3.TaskConfig().Default()
                                  ) -> Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]:
         """Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
@@ -203,7 +204,7 @@ class MyMasterNew:
             GroupVariationID(42, 8): Analog Output Event - Double-preicions floating point with time
             GroupVariationID(11, 2): Binary Output Event - With time
 
-        :param opendnp3.GroupVariationID gvid: group-variance Id
+        :param opendnp3.GroupVariationID gv_id: group-variance Id
         :param opendnp3.TaskConfig config: Task configuration. Default: opendnp3.TaskConfig().Default()
 
         :return: retrieved point values stored in a nested dict.
@@ -211,7 +212,7 @@ class MyMasterNew:
 
         :example:
         >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
-        >>> master_application.retrieve_all_obj_by_gvid(gvid=opendnp3.GroupVariationID(30, 6))
+        >>> master_application.retrieve_all_obj_by_gvid(gv_id=opendnp3.GroupVariationID(30, 6))
         GroupVariation.Group30Var6: {0: 4.8, 1: 12.1, 2: 24.2, 3: 0.0}}
         """
         # self.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
@@ -219,10 +220,34 @@ class MyMasterNew:
         # self.master.ScanRange(gvId=gvId, start=index_start, stop=index_stop,
         #                       config=config)
 
-        self.master.ScanAllObjects(gvId=gvid,
+        # self.master.ScanAllObjects(gvId=gvid,
+        #                            config=config)
+        # gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gvid)
+        # db_val = {gv_cls: self.soe_handler.gv_index_value_nested_dict.get(gv_cls)}
+
+        # TODO: refactor hard-coded retry and sleep, allow config
+        # retry logic to improve performance
+        self.master.ScanAllObjects(gvId=gv_id,
                                    config=config)
-        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gvid)
-        return {gv_cls: self.soe_handler.gv_index_value_nested_dict.get(gv_cls)}
+        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+        gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
+
+        n_retry = 5
+        sleep_delay = 1
+        while gv_db_val is None and n_retry > 0:
+            self.master.ScanAllObjects(gvId=gv_id,
+                                       config=config)
+            gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+            time.sleep(sleep_delay)
+            gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
+            n_retry -= 1
+            # print("=======n_retry, gv_db_val, gv_cls", n_retry, gv_db_val, gv_cls)
+            # print("=======self.soe_handler", self.soe_handler)
+            # print("=======self.soe_handler.gv_index_value_nested_dict id", self.soe_handler.gv_index_value_nested_dict,
+            #       id(self.soe_handler.gv_index_value_nested_dict))
+
+
+        return {gv_cls: gv_db_val}
 
     def retrieve_all_obj_by_gvids(self,
                                   gv_ids: Optional[List[opendnp3.GroupVariationID]] = None,
@@ -280,8 +305,7 @@ class MyMasterNew:
                       ]
         filtered_db: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]] = {}
         for gv_id in gv_ids:
-            self.master.ScanAllObjects(gvId=gv_id,
-                                       config=config)
+            self.retrieve_all_obj_by_gvid(gv_id=gv_id, config=config)
             gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
             filtered_db.update({gv_cls: self.soe_handler.gv_index_value_nested_dict.get(gv_cls)})
         return filtered_db
