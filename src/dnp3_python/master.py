@@ -3,7 +3,7 @@ import sys
 import time
 
 from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
-from visitors import *
+from .visitors import *
 
 from typing import Callable, Union
 
