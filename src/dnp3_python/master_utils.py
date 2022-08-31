@@ -7,13 +7,7 @@ from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
 from .visitors import *
 from pydnp3.opendnp3 import GroupVariation, GroupVariationID
 
-from typing import Callable, Union
-
-FILTERS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
-HOST = "127.0.0.1"
-LOCAL = "0.0.0.0"
-# HOST = "192.168.1.14"
-PORT = 20000
+from typing import Callable, Union, Dict, Tuple, List
 
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
@@ -21,8 +15,22 @@ stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname
 _log = logging.getLogger(__name__)
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
-_log.setLevel(logging.DEBUG)
+# _log.setLevel(logging.DEBUG)
 
+# alias
+ICollectionIndexedVal = Union[opendnp3.ICollectionIndexedAnalog,
+                              opendnp3.ICollectionIndexedBinary,
+                              opendnp3.ICollectionIndexedAnalogOutputStatus,
+                              opendnp3.ICollectionIndexedBinaryOutputStatus]
+DbPointVal = Union[float, int, bool]
+VisitorClass = Union[VisitorIndexedTimeAndInterval,
+                     VisitorIndexedAnalog,
+                     VisitorIndexedBinary,
+                     VisitorIndexedCounter,
+                     VisitorIndexedFrozenCounter,
+                     VisitorIndexedAnalogOutputStatus,
+                     VisitorIndexedBinaryOutputStatus,
+                     VisitorIndexedDoubleBitBinary]
 
 class MyLogger(openpal.ILogHandler):
     """
@@ -61,19 +69,19 @@ class SOEHandler(opendnp3.ISOEHandler):
 
     def __init__(self):
         super(SOEHandler, self).__init__()
-        self._class_index_value = None
-        self._class_index__value_dict = {}
-        self._class_index_value_nested_dict = {}
+        # self._class_index_value = None
+        # self._class_index__value_dict = {}
+        # self._class_index_value_nested_dict = {}
         self._gv_index_value_nested_dict = {}
+        self._gv_ts_ind_val_dict: Dict[GroupVariation, Tuple[datetime.datetime, Dict[int, any]]] = {}
 
-    def get_class_index_value(self):
-        return self._class_index_value
+        self._stale_if_longer_than_in_sec: int = 10  # TODO: implement public interface
+
+    # def get_class_index_value(self):
+    #     return self._class_index_value
 
     def Process(self, info,
-                values: Union[opendnp3.ICollectionIndexedAnalog,
-                              opendnp3.ICollectionIndexedBinary,
-                              opendnp3.ICollectionIndexedAnalogOutputStatus,
-                              opendnp3.ICollectionIndexedBinaryOutputStatus],
+                values: ICollectionIndexedVal,
                 *args, **kwargs):
         """
             Process measurement data.
@@ -81,7 +89,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         :param info: HeaderInfo
         :param values: A collection of values received from the Outstation (various data types are possible).
         """
-        visitor_class_types = {
+        visitor_class_types: dict = {
             opendnp3.ICollectionIndexedBinary: VisitorIndexedBinary,
             opendnp3.ICollectionIndexedDoubleBitBinary: VisitorIndexedDoubleBitBinary,
             opendnp3.ICollectionIndexedCounter: VisitorIndexedCounter,
@@ -91,51 +99,58 @@ class SOEHandler(opendnp3.ISOEHandler):
             opendnp3.ICollectionIndexedAnalogOutputStatus: VisitorIndexedAnalogOutputStatus,
             opendnp3.ICollectionIndexedTimeAndInterval: VisitorIndexedTimeAndInterval
         }
-        visitor_class = visitor_class_types[type(values)]
-        visitor = visitor_class()
-        values.Foreach(
-            visitor)  # mystery method, magic side effect. Seems to init visitor_class based on values (though not pythonic way)
+        visitor_class: Union[Callable, VisitorClass] = visitor_class_types[type(values)]
+        visitor = visitor_class()  # init
+        # Note: mystery method, magic side effect to update visitor.index_and_value
+        values.Foreach(visitor)
 
-        # print("================= values type", type(values))
-        # print("=====values.count", values.Count())
-
+        # visitor.index_and_value: List[Tuple[int, DbPointVal]]
         for index, value in visitor.index_and_value:
-            # print("=================this seems important")
             log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
             _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
 
-        # TODO: it seems the visitor is not very efficient
+        info_gv: GroupVariation = info.gv
+        visitor_ind_val: List[Tuple[int, DbPointVal]] = visitor.index_and_value
 
-        # self._class_index_value = (visitor_class, visitor.index_and_value)
-        # self._class_index__value_dict[visitor_class] = visitor.index_and_value
-        # # update nested dict
-        # if not self._class_index_value_nested_dict.get(visitor_class):
-        #     self._class_index_value_nested_dict[visitor_class] = dict(visitor.index_and_value)
-        # else:
-        #     self._class_index_value_nested_dict[visitor_class].update(dict(visitor.index_and_value))
-        # # print("=============== self._class_index_value_nested_dict", self._class_index_value_nested_dict)
+        self._post_process(info_gv=info_gv, visitor_ind_val=visitor_ind_val)
 
-        if not self._gv_index_value_nested_dict.get(info.gv):
-            # self._gv_index_value_nested_dict[info.gv] = dict(visitor.index_and_value)
-            self.gv_index_value_nested_dict[info.gv] = dict(visitor.index_and_value)
+    def _post_process(self, info_gv: GroupVariation, visitor_ind_val: List[Tuple[int, DbPointVal]]):
+        """
+        SOEHandler post process logic to stage data at MasterStation side
+        improve performance: e.g., consistent output
+
+        info_gv: GroupVariation,
+        visitor_ind_val: List[Tuple[int, DbPointVal]]
+        """
+        # Use dict update method to mitigate delay due to asynchronous communication. (i.e., return None)
+        # Also, capture unsolicited updated values.
+        if not self._gv_index_value_nested_dict.get(info_gv):
+            self._gv_index_value_nested_dict[info_gv] = (dict(visitor_ind_val))
         else:
-            # self._gv_index_value_nested_dict[info.gv].update(dict(visitor.index_and_value))
-            self.gv_index_value_nested_dict[info.gv].update(dict(visitor.index_and_value))
+            self._gv_index_value_nested_dict[info_gv].update(dict(visitor_ind_val))
 
-        # time.sleep(1)  # TODO: wait for the internal database to update
-        # print("=============== dict(visitor.index_and_value)", dict(visitor.index_and_value), datetime.datetime.now())
-        # print("=============== self._gv_index_value_nested_dict", self._gv_index_value_nested_dict)
-        # print("=============== info.gv", info.gv)
+        # Use another layer of storage to handle timestamp related logic
+        self._gv_ts_ind_val_dict[info_gv] = (datetime.datetime.now(),
+                                             self._gv_index_value_nested_dict.get(info_gv))
 
-        # print("==very import== class_index_value", self._class_index_value)
-        # print("---------- import args, kwargs", *args, **kwargs) # nothing here
-        # print("---------- important info", info, type(info))
-        # print("---------- important dir(info)", info, dir(info))
-        # print('info.flagsValid', info.flagsValid, 'info.gv', info.gv,
-        #       'info.headerIndex', info.headerIndex, 'info.isEventVariation', info.isEventVariation,
-        #       'info.qualifier', info.qualifier, 'info.tsmode', info.tsmode,
-        #       '_class_index_value: ', self._class_index_value)
-        # print("_class_index__value_dict", self._class_index__value_dict)
+    def _update_stale_db(self, stale_if_longer_than: int):
+        """
+        Force to update (set to None) if the data is stale
+        consider the database is stale if last update time from is long than `stale_if_longer_than`
+        stale_if_longer_than: int,
+        """
+        dict_keys = list(self._gv_ts_ind_val_dict.keys())  # to prevent "dictionary changed size during iteration"
+        for gv in dict_keys:
+            last_update_time: datetime.datetime = self._gv_ts_ind_val_dict.get(gv)[0]
+            last_update_time_from_now = (datetime.datetime.now() - last_update_time).total_seconds()
+            if last_update_time_from_now >= stale_if_longer_than:
+                # pop/delete gv item that is stale
+                self._gv_ts_ind_val_dict.pop(gv)
+                self._gv_index_value_nested_dict.pop(gv)
+                _log.debug(f"===={gv} is stale and has been removed. "
+                           f"last_update_time_from_now: {last_update_time_from_now}, "
+                           f"stale_if_longer_than: {stale_if_longer_than}."
+                           )
 
     def Start(self):
         _log.debug('In SOEHandler.Start')
@@ -146,6 +161,12 @@ class SOEHandler(opendnp3.ISOEHandler):
     @property
     def gv_index_value_nested_dict(self):
         return self._gv_index_value_nested_dict
+
+    @property
+    def gv_ts_ind_val_dict(self):
+        # add validation to prevent stale db
+        self._update_stale_db(self._stale_if_longer_than_in_sec)
+        return self._gv_ts_ind_val_dict
 
 
 def collection_callback(result=None):

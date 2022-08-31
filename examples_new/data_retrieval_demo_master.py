@@ -39,12 +39,11 @@ def main():
     # cmd_interface_outstation = OutstationCmd()
     # _log.debug('Initialization complete. OutStation in command loop.')
 
-
     master_application = MyMasterNew()
     _log.debug('Initialization complete. Master Station in command loop.')
 
     count = 0
-    while count < 20:
+    while count < 2:
         sleep(1)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
@@ -57,6 +56,12 @@ def main():
         print(f"===important log: case4 retrieve_all_obj_by_gvids default ==== {count}", datetime.datetime.now(),
               result)
 
+        # # use case 5: (for debugging) retrieve point values specified by a list of GroupVariationIDs.
+        # # demo float AnalogInput, BinaryInput,
+        # result = master_application._retrieve_all_obj_by_gvids_w_ts(gv_ids=[opendnp3.GroupVariationID(30, 6),
+        #                                                                     opendnp3.GroupVariationID(1, 2)])
+        # print(f"===important log: case5 _retrieve_all_obj_by_gvids_w_ts default ==== {count}", datetime.datetime.now(),
+        #       result)
 
     _log.debug('Exiting.')
     master_application.shutdown()

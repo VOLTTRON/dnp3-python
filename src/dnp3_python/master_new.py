@@ -253,7 +253,6 @@ class MyMasterNew:
             if n_retry >= retry_max:
                 _log.warning("==Retry numbers hit retry limit {}==".format(retry_max))
 
-
         return {gv_cls: gv_db_val}
 
     def retrieve_all_obj_by_gvids(self,
@@ -316,6 +315,38 @@ class MyMasterNew:
             gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
             filtered_db.update({gv_cls: self.soe_handler.gv_index_value_nested_dict.get(gv_cls)})
         return filtered_db
+
+    def _retrieve_all_obj_by_gvids_w_ts(self,
+                                  gv_ids: Optional[List[opendnp3.GroupVariationID]] = None,
+                                  config=opendnp3.TaskConfig().Default()
+                                  ) -> Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]:
+        """Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
+
+        :param opendnp3.GroupVariationID gv_ids: list of group-variance Id
+        :param opendnp3.TaskConfig config: Task configuration. Default: opendnp3.TaskConfig().Default()
+
+        :return: retrieved point values stored in a nested dict.
+        :rtype: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]
+
+        """
+        # TODO: refactor to reuse retrieve_all_obj_by_gvids
+        gv_ids: Optional[List[opendnp3.GroupVariationID]]
+        if gv_ids is None:  # using default
+            gv_ids = [GroupVariationID(30, 6),
+                      GroupVariationID(1, 2),
+                      GroupVariationID(40, 4),
+                      GroupVariationID(10, 2),
+                      # GroupVariationID(32, 4),
+                      # GroupVariationID(2, 2),
+                      # GroupVariationID(42, 8),
+                      # GroupVariationID(11, 2),
+                      ]
+        filtered_db_w_ts: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]] = {}
+        for gv_id in gv_ids:
+            self.retrieve_all_obj_by_gvid(gv_id=gv_id, config=config)
+            gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+            filtered_db_w_ts.update({gv_cls: self.soe_handler.gv_ts_ind_val_dict.get(gv_cls)})
+        return filtered_db_w_ts
 
     def shutdown(self):
         # print("=======before master del self.__dict", self.__dict__)

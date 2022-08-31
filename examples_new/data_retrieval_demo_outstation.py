@@ -43,7 +43,7 @@ def main():
     _log.debug('Initialization complete. OutStation in command loop.')
 
     count = 0
-    while count < 20:
+    while count < 50:
         sleep(1)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1

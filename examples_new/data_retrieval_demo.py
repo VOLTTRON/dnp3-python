@@ -89,6 +89,13 @@ def main():
         print(f"===important log: case4 retrieve_all_obj_by_gvids default ==== {count}", datetime.datetime.now(),
               result)
 
+        # use case 5: (for debugging) retrieve point values specified by a list of GroupVariationIDs.
+        # demo float AnalogInput, BinaryInput,
+        result = master_application._retrieve_all_obj_by_gvids_w_ts(gv_ids=[opendnp3.GroupVariationID(30, 6),
+                                                                      opendnp3.GroupVariationID(1, 2)])
+        print(f"===important log: case5 _retrieve_all_obj_by_gvids_w_ts default ==== {count}", datetime.datetime.now(),
+              result)
+
 
 
     _log.debug('Exiting.')
