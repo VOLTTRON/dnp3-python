@@ -19,8 +19,9 @@ stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname
 
 _log = logging.getLogger(__name__)
 _log.addHandler(stdout_stream)
-_log.setLevel(logging.DEBUG)
-_log.setLevel(logging.ERROR)
+# _log.setLevel(logging.DEBUG)
+# _log.setLevel(logging.ERROR)
+_log.setLevel(logging.WARNING)
 
 from .master_utils import MyLogger, AppChannelListener, SOEHandler
 from .master_utils import parsing_gvid_to_gvcls
@@ -233,19 +234,24 @@ class MyMasterNew:
         gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
 
         # retry logic to improve performance
-        n_retry = 5
+        # TODO: implement public interface to setup n_retry, sleep_delay
+        retry_max = 5
+        n_retry = 0
         sleep_delay = 1
-        while gv_db_val is None and n_retry > 0:
+        while gv_db_val is None and n_retry < retry_max:
             self.master.ScanAllObjects(gvId=gv_id,
                                        config=config)
             # gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
             time.sleep(sleep_delay)
             gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
-            n_retry -= 1
+            n_retry += 1
             # print("=======n_retry, gv_db_val, gv_cls", n_retry, gv_db_val, gv_cls)
             # print("=======self.soe_handler", self.soe_handler)
             # print("=======self.soe_handler.gv_index_value_nested_dict id", self.soe_handler.gv_index_value_nested_dict,
             #       id(self.soe_handler.gv_index_value_nested_dict))
+
+            if n_retry >= retry_max:
+                _log.warning("==Retry numbers hit retry limit {}==".format(retry_max))
 
 
         return {gv_cls: gv_db_val}
