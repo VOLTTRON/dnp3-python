@@ -64,39 +64,53 @@ def main():
 
         # master station retrieve outstation point values
 
-        # use case 1: retrieve float analogInput values specified by GroupVariationID(30, 6)
-        result = master_application.retrieve_all_obj_by_gvid(gv_id=opendnp3.GroupVariationID(30, 6),
-                                                             config=opendnp3.TaskConfig().Default())
-        print(f"===important log: case1 retrieve_all_obj_by_gvid GroupVariationID(30, 6)==== {count}",
-              result)
-
-        # use case 2: retrieve binaryInput values specified by GroupVariationID(1, 2)
-        result = master_application.retrieve_all_obj_by_gvid(gv_id=opendnp3.GroupVariationID(1, 2),
-                                                             config=opendnp3.TaskConfig().Default())
-        print(f"===important log: case2 retrieve_all_obj_by_gvid GroupVariationID(1, 2) ==== {count}",
-              result)
-
-        # # use case 3: retrieve point values specified by a list of GroupVariationIDs.
-        # # by default, retrieve float AnalogInput, BinaryInput, float AnalogOutput, BinaryOutput
-        # result = master_application.retrieve_all_obj_by_gvids()
-        # print(f"===important log: case3 retrieve_all_obj_by_gvids default ==== {count}",
+        # # use case 1: retrieve float analogInput values specified by GroupVariationID(30, 6)
+        # result = master_application.retrieve_all_obj_by_gvid(gv_id=opendnp3.GroupVariationID(30, 6),
+        #                                                      config=opendnp3.TaskConfig().Default())
+        # print(f"===important log: case1 retrieve_all_obj_by_gvid GroupVariationID(30, 6)==== {count}",
+        #       result)
+        #
+        # # use case 2: retrieve binaryInput values specified by GroupVariationID(1, 2)
+        # result = master_application.retrieve_all_obj_by_gvid(gv_id=opendnp3.GroupVariationID(1, 2),
+        #                                                      config=opendnp3.TaskConfig().Default())
+        # print(f"===important log: case2 retrieve_all_obj_by_gvid GroupVariationID(1, 2) ==== {count}",
+        #       result)
+        #
+        # # # use case 3: retrieve point values specified by a list of GroupVariationIDs.
+        # # # by default, retrieve float AnalogInput, BinaryInput, float AnalogOutput, BinaryOutput
+        # # result = master_application.retrieve_all_obj_by_gvids()
+        # # print(f"===important log: case3 retrieve_all_obj_by_gvids default ==== {count}",
+        # #       result)
+        #
+        # # use case 4: retrieve point values specified by a list of GroupVariationIDs.
+        # # demo float AnalogInput, BinaryInput,
+        # result = master_application.retrieve_all_obj_by_gvids(gv_ids=[opendnp3.GroupVariationID(30, 6),
+        #                                                               opendnp3.GroupVariationID(1, 2)])
+        # print(f"===important log: case4 retrieve_all_obj_by_gvids default ==== {count}", datetime.datetime.now(),
+        #       result)
+        #
+        # # use case 5: (for debugging) retrieve point values specified by a list of GroupVariationIDs.
+        # # demo float AnalogInput, BinaryInput,
+        # result = master_application._retrieve_all_obj_by_gvids_w_ts(gv_ids=[opendnp3.GroupVariationID(30, 6),
+        #                                                               opendnp3.GroupVariationID(1, 2)])
+        # print(f"===important log: case5 _retrieve_all_obj_by_gvids_w_ts default ==== {count}", datetime.datetime.now(),
         #       result)
 
-        # use case 4: retrieve point values specified by a list of GroupVariationIDs.
-        # demo float AnalogInput, BinaryInput,
-        result = master_application.retrieve_all_obj_by_gvids(gv_ids=[opendnp3.GroupVariationID(30, 6),
-                                                                      opendnp3.GroupVariationID(1, 2)])
-        print(f"===important log: case4 retrieve_all_obj_by_gvids default ==== {count}", datetime.datetime.now(),
+        # use case 6: retrieve point values specified by single GroupVariationIDs and index.
+        # demo float AnalogInput,
+        # result = master_application.retrieve_all_obj_by_gvids(gv_ids=[opendnp3.GroupVariationID(30, 6),
+        #                                                               opendnp3.GroupVariationID(1, 2)])
+        result = master_application.retrieve_val_by_gv(gv_id=opendnp3.GroupVariationID(30, 6),)
+        print(f"===important log: case6 retrieve_val_by_gv default ==== {count}", datetime.datetime.now(),
               result)
 
-        # use case 5: (for debugging) retrieve point values specified by a list of GroupVariationIDs.
-        # demo float AnalogInput, BinaryInput,
-        result = master_application._retrieve_all_obj_by_gvids_w_ts(gv_ids=[opendnp3.GroupVariationID(30, 6),
-                                                                      opendnp3.GroupVariationID(1, 2)])
-        print(f"===important log: case5 _retrieve_all_obj_by_gvids_w_ts default ==== {count}", datetime.datetime.now(),
+        # use case 7: retrieve point values specified by single GroupVariationIDs and index.
+        # demo float AnalogInput,
+        # result = master_application.retrieve_all_obj_by_gvids(gv_ids=[opendnp3.GroupVariationID(30, 6),
+        #                                                               opendnp3.GroupVariationID(1, 2)])
+        result = master_application.retrieve_val_by_gv_i(gv_id=opendnp3.GroupVariationID(30, 6), index=0)
+        print(f"===important log: case7 retrieve_val_by_gv_i default ==== {count}", datetime.datetime.now(),
               result)
-
-
 
     _log.debug('Exiting.')
     master_application.shutdown()

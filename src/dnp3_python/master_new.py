@@ -5,7 +5,7 @@ import time
 from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
 # from visitors import *
 from .visitors import *
-from typing import Callable, Union, Dict, List, Optional
+from typing import Callable, Union, Dict, List, Optional, Tuple
 from pydnp3.opendnp3 import GroupVariation, GroupVariationID
 
 FILTERS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
@@ -18,7 +18,7 @@ stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
 
 _log = logging.getLogger(__name__)
-_log.addHandler(stdout_stream)
+# _log.addHandler(stdout_stream)
 # _log.setLevel(logging.DEBUG)
 # _log.setLevel(logging.ERROR)
 _log.setLevel(logging.WARNING)
@@ -26,10 +26,11 @@ _log.setLevel(logging.WARNING)
 from .master_utils import MyLogger, AppChannelListener, SOEHandler
 from .master_utils import parsing_gvid_to_gvcls
 from .master_utils import collection_callback, command_callback, restart_callback
+import datetime
 
 # alias DbPointVal
 DbPointVal = Union[float, int, bool]
-
+DbStorage = Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]  # e.g., {GroupVariation.Group30Var6: {0: 4.8, 1: 14.1, 2: 27.2, 3: 0.0, 4: 0.0}
 
 class MyMasterNew:
     """
@@ -187,7 +188,9 @@ class MyMasterNew:
     def retrieve_all_obj_by_gvid(self, gv_id: opendnp3.GroupVariationID,
                                  config=opendnp3.TaskConfig().Default()
                                  ) -> Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]:
-        """Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
+        """
+        Deprecated.
+        Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
 
         Common gvId: ref: dnp3 Namespace Reference: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html
         TODO: rewrite opendnp3.GroupVariationID to add docstring
@@ -347,6 +350,113 @@ class MyMasterNew:
             gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
             filtered_db_w_ts.update({gv_cls: self.soe_handler.gv_ts_ind_val_dict.get(gv_cls)})
         return filtered_db_w_ts
+
+    def retrieve_all_obj_by_gvis(self,
+                                  gv_id: opendnp3.GroupVariationID = None,
+                                  index=None
+                                  ) -> DbPointVal:
+        """
+        Retrive value based group-variation id and index
+        """
+
+        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+        val: DbPointVal = self.soe_handler.gv_index_value_nested_dict.get(gv_cls).get(index)
+        return val
+
+    def retrieve_val_by_gv(self, gv_id: opendnp3.GroupVariationID) -> DbStorage:
+        """
+        Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6)
+
+        Return ret_val: "ValStorage"
+
+        EXAMPLE:
+        >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
+        >>> master_application.retrieve_val_by_gv(gv_id=opendnp3.GroupVariationID(30, 6))
+        ({GroupVariation.Group30Var6: {0: 7.8, 1: 14.1, 2: 22.2, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0}}, datetime.datetime(2022, 9, 8, 22, 3, 50, 591742), 'init')
+        """
+
+        # alias
+        ValStorage = Union[None, Tuple[datetime.datetime, Dict[int, DbPointVal]]]
+
+        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+        val_storage: ValStorage = self.soe_handler.gv_ts_ind_val_dict.get(gv_cls)
+        ret_val: {opendnp3.GroupVariation: Dict[int, DbPointVal]}
+
+        # print("===========val_storage", val_storage)
+        # print("===========self.soe_handler.gv_ts_ind_val_dict", self.soe_handler.gv_ts_ind_val_dict)
+        if val_storage is None:
+            ret_val = self._get_updated_val_storage(gv_id)
+            _log.debug(f"Retrieve {ret_val} EMPTY value from storage at {datetime.datetime.now()}")
+        else:
+            ts = val_storage[0]
+            # Note: there is caching logic to prevent overuse self.master.ScanAllObjects.
+            # The stale checking logic is to prevent extensive caching
+            stale_if_longer_than = 2  # TODO: refactor hard-coded
+            if (datetime.datetime.now() - ts).total_seconds() > stale_if_longer_than:
+                ret_val = self._get_updated_val_storage(gv_id)
+                _log.debug(f"Retrieve {ret_val} updated STALE from value storage at {datetime.datetime.now()}")
+            else:
+                val_body = val_storage[1]
+                ret_val = {gv_cls: val_body}
+                _log.debug(f"Retrieve {ret_val} from value storage at {datetime.datetime.now()}")
+        return ret_val
+
+    def _get_updated_val_storage(self, gv_id: opendnp3.GroupVariationID) -> DbStorage:
+        """
+        Wrap on self.master.ScanAllObjects with retry logic
+        """
+        pass
+        # Start from fresh--Set val_storage to None
+        self.soe_handler.gv_index_value_nested_dict[gv_id] = None
+        self.soe_handler.gv_ts_ind_val_dict[gv_id] = None
+        # perform scan
+        config = opendnp3.TaskConfig().Default()
+        # TODO: refactor hard-coded retry and sleep, allow config
+        # TODO: "prettify" the following while loop workflow. e.g., helper function + recurrent function
+        self.master.ScanAllObjects(gvId=gv_id,
+                                   config=config)
+        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+        gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
+
+        # retry logic to improve performance
+        # TODO: implement public interface to setup n_retry, sleep_delay
+        retry_max = 5
+        n_retry = 0
+        sleep_delay = 1
+        while gv_db_val is None and n_retry < retry_max:
+            self.master.ScanAllObjects(gvId=gv_id,
+                                       config=config)
+            # gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+            time.sleep(sleep_delay)
+            gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
+            n_retry += 1
+            # print("=======n_retry, gv_db_val, gv_cls", n_retry, gv_db_val, gv_cls)
+            # print("=======self.soe_handler", self.soe_handler)
+            # print("=======self.soe_handler.gv_index_value_nested_dict id", self.soe_handler.gv_index_value_nested_dict,
+            #       id(self.soe_handler.gv_index_value_nested_dict))
+
+            if n_retry >= retry_max:
+                _log.warning("==Retry numbers hit retry limit {}==".format(retry_max))
+
+        return {gv_cls: gv_db_val}
+
+    def retrieve_val_by_gv_i(self, gv_id: opendnp3.GroupVariationID, index: int) -> DbStorage:
+        """
+        Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6), and index
+
+        Return ret_val: "ValStorage"
+
+        EXAMPLE:
+        >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
+        >>> master_application.retrieve_val_by_gv_i(gv_id=opendnp3.GroupVariationID(30, 6), index=0)
+        ({GroupVariation.Group30Var6: {0: 7.8, 1: 14.1, 2: 22.2, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0}}, datetime.datetime(2022, 9, 8, 22, 3, 50, 591742), 'init')
+        """
+        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+        vals: Dict[int, DbPointVal] = self.retrieve_val_by_gv(gv_id).get(gv_cls)
+
+        return {gv_cls: {index: self.retrieve_val_by_gv(gv_id).get(gv_cls).get(index)}}
+
+
 
     def shutdown(self):
         # print("=======before master del self.__dict", self.__dict__)

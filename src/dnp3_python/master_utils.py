@@ -160,12 +160,14 @@ class SOEHandler(opendnp3.ISOEHandler):
 
     @property
     def gv_index_value_nested_dict(self):
+        # add validation to prevent stale db
+        # self._update_stale_db(self._stale_if_longer_than_in_sec)
         return self._gv_index_value_nested_dict
 
     @property
     def gv_ts_ind_val_dict(self):
         # add validation to prevent stale db
-        self._update_stale_db(self._stale_if_longer_than_in_sec)
+        # self._update_stale_db(self._stale_if_longer_than_in_sec)
         return self._gv_ts_ind_val_dict
 
 

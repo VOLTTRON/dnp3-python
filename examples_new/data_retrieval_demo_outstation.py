@@ -26,9 +26,10 @@ stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname
 
 _log = logging.getLogger(__name__)
 _log = logging.getLogger("data_retrieval_demo_outstation")
-_log.addHandler(stdout_stream)
+# _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 _log.setLevel(logging.WARNING)
+_log.setLevel(logging.ERROR)
 
 
 def main():
@@ -44,7 +45,7 @@ def main():
 
     count = 0
     while count < 50:
-        sleep(1)  # Note: hard-coded, master station query every 1 sec.
+        sleep(5)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
         print(datetime.datetime.now(), "============count ", count, )
