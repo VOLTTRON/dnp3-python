@@ -32,6 +32,7 @@ VisitorClass = Union[VisitorIndexedTimeAndInterval,
                      VisitorIndexedBinaryOutputStatus,
                      VisitorIndexedDoubleBitBinary]
 
+
 class MyLogger(openpal.ILogHandler):
     """
         Override ILogHandler in this manner to implement application-specific logging behavior.
@@ -222,31 +223,37 @@ def parsing_gvid_to_gvcls(gvid: GroupVariationID) -> GroupVariation:
     >>> parsing_gvid_to_gvcls(gvid=GroupVariationID(30, 6))
     GroupVariation.Group30Var6
     """
-    # TODO: hard-coded for now. transfer to auto mapping
     # print("====gvId GroupVariationID", gvid)
     group: int = gvid.group
     variation: int = gvid.variation
     gv_cls: GroupVariation
 
-    if group == 30 and variation == 6:
-        gv_cls = GroupVariation.Group30Var6
-    elif group == 30 and variation == 1:
-        gv_cls = GroupVariation.Group30Var1
-    elif group == 1 and variation == 2:
-        gv_cls = GroupVariation.Group1Var2
-    elif group == 40 and variation == 4:
-        gv_cls = GroupVariation.Group40Var4
-    elif group == 4 and variation == 1:
-        gv_cls = GroupVariation.Group40Var1
-    elif group == 10 and variation == 2:
-        gv_cls = GroupVariation.Group10Var2
-    elif group == 32 and variation == 4:
-        gv_cls = GroupVariation.Group32Var4
-    elif group == 2 and variation == 2:
-        gv_cls = GroupVariation.Group2Var2
-    elif group == 42 and variation == 8:
-        gv_cls = GroupVariation.Group42Var8
-    elif group == 11 and variation == 2:
-        gv_cls = GroupVariation.Group11Var2
+    gv_cls = GroupVariationID(30, 6)  # default
+    # auto parsing
+    try:
+        gv_cls = getattr(opendnp3.GroupVariation, f"Group{group}Var{variation}")
+        assert gv_cls is not None
+    except ValueError as e:
+        _log.warning(f"Group{group}Var{variation} is not valid opendnp3.GroupVariation")
+    # if group == 30 and variation == 6:
+    #     gv_cls = GroupVariation.Group30Var6
+    # elif group == 30 and variation == 1:
+    #     gv_cls = GroupVariation.Group30Var1
+    # elif group == 1 and variation == 2:
+    #     gv_cls = GroupVariation.Group1Var2
+    # elif group == 40 and variation == 4:
+    #     gv_cls = GroupVariation.Group40Var4
+    # elif group == 4 and variation == 1:
+    #     gv_cls = GroupVariation.Group40Var1
+    # elif group == 10 and variation == 2:
+    #     gv_cls = GroupVariation.Group10Var2
+    # elif group == 32 and variation == 4:
+    #     gv_cls = GroupVariation.Group32Var4
+    # elif group == 2 and variation == 2:
+    #     gv_cls = GroupVariation.Group2Var2
+    # elif group == 42 and variation == 8:
+    #     gv_cls = GroupVariation.Group42Var8
+    # elif group == 11 and variation == 2:
+    #     gv_cls = GroupVariation.Group11Var2
 
     return gv_cls

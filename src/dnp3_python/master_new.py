@@ -29,7 +29,7 @@ from .master_utils import collection_callback, command_callback, restart_callbac
 import datetime
 
 # alias DbPointVal
-DbPointVal = Union[float, int, bool]
+DbPointVal = Union[float, int, bool, None]
 DbStorage = Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]  # e.g., {GroupVariation.Group30Var6: {0: 4.8, 1: 14.1, 2: 27.2, 3: 0.0, 4: 0.0}
 
 class MyMasterNew:
@@ -457,8 +457,11 @@ class MyMasterNew:
         """
         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
         vals: Dict[int, DbPointVal] = self.retrieve_val_by_gv(gv_id).get(gv_cls)
+        if vals:
+            return {gv_cls: {index: vals.get(index)}}
+        else:
+            return {gv_cls: {index: None}}
 
-        return {gv_cls: {index: self.retrieve_val_by_gv(gv_id).get(gv_cls).get(index)}}
 
 
 
