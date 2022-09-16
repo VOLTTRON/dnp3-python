@@ -405,17 +405,21 @@ class MyMasterNew:
         """
         Wrap on self.master.ScanAllObjects with retry logic
         """
-        pass
+        # TODO:
+        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+
         # Start from fresh--Set val_storage to None
-        self.soe_handler.gv_index_value_nested_dict[gv_id] = None
-        self.soe_handler.gv_ts_ind_val_dict[gv_id] = None
+        self.soe_handler.gv_index_value_nested_dict[gv_cls] = None
+        self.soe_handler.gv_ts_ind_val_dict[gv_cls] = None
         # perform scan
         config = opendnp3.TaskConfig().Default()
         # TODO: refactor hard-coded retry and sleep, allow config
         # TODO: "prettify" the following while loop workflow. e.g., helper function + recurrent function
         self.master.ScanAllObjects(gvId=gv_id,
                                    config=config)
-        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+        # gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+        # # update stale logic to improve performance
+        # self.soe_handler.update_stale_db()
         gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
 
         # retry logic to improve performance

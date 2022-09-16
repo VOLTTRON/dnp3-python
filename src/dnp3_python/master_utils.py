@@ -133,8 +133,20 @@ class SOEHandler(opendnp3.ISOEHandler):
         self._gv_ts_ind_val_dict[info_gv] = (datetime.datetime.now(),
                                              self._gv_index_value_nested_dict.get(info_gv))
 
+    def update_stale_db(self):
+        """
+        deprecate
+
+        Force to update (set to None) if the data is stale
+        consider the database is stale if last update time from is long than `stale_if_longer_than`
+        stale_if_longer_than: int,
+        """
+        self._update_stale_db(stale_if_longer_than=self._stale_if_longer_than_in_sec)
+
     def _update_stale_db(self, stale_if_longer_than: int):
         """
+        deprecate
+
         Force to update (set to None) if the data is stale
         consider the database is stale if last update time from is long than `stale_if_longer_than`
         stale_if_longer_than: int,
