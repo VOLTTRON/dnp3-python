@@ -100,7 +100,8 @@ def main():
         # demo float AnalogInput,
         # result = master_application.retrieve_all_obj_by_gvids(gv_ids=[opendnp3.GroupVariationID(30, 6),
         #                                                               opendnp3.GroupVariationID(1, 2)])
-        result = master_application.retrieve_val_by_gv(gv_id=opendnp3.GroupVariationID(30, 6),)
+        # result = master_application.retrieve_val_by_gv(gv_id=opendnp3.GroupVariationID(30, 6),)
+        result = master_application.get_db_by_group_variation(group=30, variation=6)
         print(f"===important log: case6 retrieve_val_by_gv default ==== {count}", datetime.datetime.now(),
               result)
 
@@ -108,7 +109,8 @@ def main():
         # demo float AnalogInput,
         # result = master_application.retrieve_all_obj_by_gvids(gv_ids=[opendnp3.GroupVariationID(30, 6),
         #                                                               opendnp3.GroupVariationID(1, 2)])
-        result = master_application.retrieve_val_by_gv_i(gv_id=opendnp3.GroupVariationID(30, 6), index=0)
+        # result = master_application.retrieve_val_by_gv_i(gv_id=opendnp3.GroupVariationID(30, 6), index=0)
+        result = master_application.get_db_by_group_variation_index(group=30, variation=6, index=0)
         print(f"===important log: case7 retrieve_val_by_gv_i default ==== {count}", datetime.datetime.now(),
               result)
 

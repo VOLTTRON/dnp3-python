@@ -364,8 +364,7 @@ class MyMasterNew:
         return val
 
     def retrieve_val_by_gv(self, gv_id: opendnp3.GroupVariationID) -> DbStorage:
-        """
-        Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6)
+        """Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6)
 
         Return ret_val: "ValStorage"
 
@@ -377,7 +376,6 @@ class MyMasterNew:
 
         # alias
         ValStorage = Union[None, Tuple[datetime.datetime, Dict[int, DbPointVal]]]
-
         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
         val_storage: ValStorage = self.soe_handler.gv_ts_ind_val_dict.get(gv_cls)
         ret_val: {opendnp3.GroupVariation: Dict[int, DbPointVal]}
@@ -448,7 +446,7 @@ class MyMasterNew:
         """
         Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6), and index
 
-        Return ret_val: "ValStorage"
+        Return ret_val: DbStorage
 
         EXAMPLE:
         >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
@@ -462,6 +460,58 @@ class MyMasterNew:
         else:
             return {gv_cls: {index: None}}
 
+    def get_db_by_group_variation(self, group: int, variation: int) -> DbStorage:
+        """Retrieve point value (from an outstation databse) based on Group-Variation pair.
+
+        Common gvId: ref: dnp3 Namespace Reference: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html
+
+        for static state
+            GroupVariationID(30, 6): Analog input - double-precision, floating-point with flag
+            GroupVariationID(30, 1): Analog input - 32-bit with flag
+            GroupVariationID(1, 2): Binary input - with flags
+
+            GroupVariationID(40, 4): Analog Output Status - Double-precision floating point with flags
+            GroupVariationID(40, 1): Analog Output Status - 32-bit with flags
+            GroupVariationID(10, 2): Binary Output - With flags
+        for event
+            GroupVariationID(32, 4): Analog Input Event - 16-bit with time
+            GroupVariationID(2, 2): Binary Input Event - With absolute time
+            GroupVariationID(42, 8): Analog Output Event - Double-preicions floating point with time
+            GroupVariationID(11, 2): Binary Output Event - With time
+
+        :param group: group Id
+        :param variation: variation Id
+
+        :return: retrieved point values stored in a nested dict.
+        :rtype: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]
+
+        :example:
+        >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
+        >>> master_application.get_db_by_group_variation(group=6, variation=30)
+        GroupVariation.Group30Var6: {0: 4.8, 1: 12.1, 2: 24.2, 3: 0.0}}
+        """
+
+        gv_id = opendnp3.GroupVariationID(group, variation)
+        return self.retrieve_all_obj_by_gvid(gv_id=gv_id)
+
+    def get_db_by_group_variation_index(self, group: int, variation: int, index: int) -> DbStorage:
+        """Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6), and index
+
+         Return ret_val: DbStorage
+        
+         EXAMPLE:
+         >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
+         >>> master_application.get_db_by_group_variation_index(group=6, variation=30, index=0)
+         ({GroupVariation.Group30Var6: {0: 7.8, 1: 14.1, 2: 22.2, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0}}, datetime.datetime(2022, 9, 8, 22, 3, 50, 591742), 'init')
+
+        """
+        gv_id = opendnp3.GroupVariationID(group, variation)
+        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+        vals: Dict[int, DbPointVal] = self.retrieve_val_by_gv(gv_id).get(gv_cls)
+        if vals:
+            return {gv_cls: {index: vals.get(index)}}
+        else:
+            return {gv_cls: {index: None}}
 
 
 
