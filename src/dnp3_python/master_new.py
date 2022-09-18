@@ -205,7 +205,7 @@ class MyMasterNew:
                                  config=opendnp3.TaskConfig().Default()
                                  ) -> Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]:
         """
-        Deprecated.
+        Deprecated. (Use retrieve_val_by_gv instead)
         Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
 
         Common gvId: ref: dnp3 Namespace Reference: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html
@@ -278,7 +278,10 @@ class MyMasterNew:
                                   gv_ids: Optional[List[opendnp3.GroupVariationID]] = None,
                                   config=opendnp3.TaskConfig().Default()
                                   ) -> Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]:
-        """Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
+        """
+        Deprecated. (encorage the user to use retrieve_val_by_gv instead)
+
+        Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
 
         Common gvId: ref: dnp3 Namespace Reference: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html
         TODO: rewrite opendnp3.GroupVariationID to add docstring
@@ -362,7 +365,8 @@ class MyMasterNew:
                       ]
         filtered_db_w_ts: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]] = {}
         for gv_id in gv_ids:
-            self.retrieve_all_obj_by_gvid(gv_id=gv_id, config=config)
+            # self.retrieve_all_obj_by_gvid(gv_id=gv_id, config=config)
+            self.retrieve_val_by_gv(gv_id=gv_id)
             gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
             filtered_db_w_ts.update({gv_cls: self.soe_handler.gv_ts_ind_val_dict.get(gv_cls)})
         return filtered_db_w_ts
@@ -419,7 +423,7 @@ class MyMasterNew:
         """
         Wrap on self.master.ScanAllObjects with retry logic
         """
-        # TODO:
+
         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
 
         # Start from fresh--Set val_storage to None
@@ -440,21 +444,25 @@ class MyMasterNew:
         # TODO: implement public interface to setup n_retry, sleep_delay
         retry_max = 5
         n_retry = 0
-        sleep_delay = 1
+        sleep_delay = 0.2  # in seconds
         while gv_db_val is None and n_retry < retry_max:
             self.master.ScanAllObjects(gvId=gv_id,
                                        config=config)
             # gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
             time.sleep(sleep_delay)
             gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
+            if gv_db_val is None:
+                _log.info(f"No value returned when polling {gv_cls}. "
+                             f"Starting retry No. {n_retry + 1} after {sleep_delay} sec.")
             n_retry += 1
             # print("=======n_retry, gv_db_val, gv_cls", n_retry, gv_db_val, gv_cls)
             # print("=======self.soe_handler", self.soe_handler)
             # print("=======self.soe_handler.gv_index_value_nested_dict id", self.soe_handler.gv_index_value_nested_dict,
             #       id(self.soe_handler.gv_index_value_nested_dict))
+            # print("======gv_db_val", gv_db_val)
 
             if n_retry >= retry_max:
-                _log.warning("==Retry numbers hit retry limit {}==".format(retry_max))
+                _log.warning("==Retry numbers hit retry limit {}, when polling {}==".format(retry_max, gv_cls))
 
         return {gv_cls: gv_db_val}
 
@@ -508,7 +516,7 @@ class MyMasterNew:
         """
 
         gv_id = opendnp3.GroupVariationID(group, variation)
-        return self.retrieve_all_obj_by_gvid(gv_id=gv_id)
+        return self.retrieve_val_by_gv(gv_id=gv_id)
 
     def get_db_by_group_variation_index(self, group: int, variation: int, index: int) -> DbStorage:
         """Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6), and index
