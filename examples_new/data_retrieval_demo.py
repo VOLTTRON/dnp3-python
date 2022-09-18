@@ -89,7 +89,7 @@ def main():
         # print(f"===important log: case4 retrieve_all_obj_by_gvids default ==== {count}", datetime.datetime.now(),
         #       result)
         #
-        # use case 5: (for debugging) retrieve point values specified by a list of GroupVariationIDs.
+        # use case 5: (for debugging purposes) retrieve point values specified by a list of GroupVariationIDs.
         # demo float AnalogInput, BinaryInput,
         result = master_application._retrieve_all_obj_by_gvids_w_ts(gv_ids=[opendnp3.GroupVariationID(30, 6),
                                                                       opendnp3.GroupVariationID(1, 2)])
@@ -102,7 +102,7 @@ def main():
         #                                                               opendnp3.GroupVariationID(1, 2)])
         # result = master_application.retrieve_val_by_gv(gv_id=opendnp3.GroupVariationID(30, 6),)
         result = master_application.get_db_by_group_variation(group=30, variation=6)
-        print(f"===important log: case6 retrieve_val_by_gv default ==== {count}", datetime.datetime.now(),
+        print(f"===important log: case6 get_db_by_group_variation ==== {count}", datetime.datetime.now(),
               result)
 
         # use case 7: retrieve point values specified by single GroupVariationIDs and index.
@@ -111,7 +111,7 @@ def main():
         #                                                               opendnp3.GroupVariationID(1, 2)])
         # result = master_application.retrieve_val_by_gv_i(gv_id=opendnp3.GroupVariationID(30, 6), index=0)
         result = master_application.get_db_by_group_variation_index(group=30, variation=6, index=0)
-        print(f"===important log: case7 retrieve_val_by_gv_i default ==== {count}", datetime.datetime.now(),
+        print(f"===important log: case7 get_db_by_group_variation_index ==== {count}", datetime.datetime.now(),
               result)
 
     _log.debug('Exiting.')
