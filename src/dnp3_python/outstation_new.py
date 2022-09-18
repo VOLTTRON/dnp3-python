@@ -18,6 +18,7 @@ _log = logging.getLogger(__name__)
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 # _log.setLevel(logging.ERROR)  # TODO: encapsulate this
+_log.setLevel(logging.INFO)
 
 
 class MyOutStationNew(opendnp3.IOutstationApplication):
@@ -55,6 +56,9 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
                  masterstation_id_int: int = 2,
                  outstation_id_int: int = 1,
                  concurrencyHint: int = 1,
+
+                 channel_log_level=opendnp3.levels.NORMAL,
+                 outstation_log_level=opendnp3.levels.NORMAL,
                  ):
         super().__init__()
 
@@ -118,6 +122,23 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
                                                      application=self.outstation_application,
                                                      config=self.stack_config)
 
+        # Configure log level for channel(tcpclient) and outstation
+        # note: one of the following
+        #   ALL = -1
+        #   ALL_APP_COMMS = 129024
+        #   ALL_COMMS = 130720
+        #   NORMAL = 15
+        #   NOTHING = 0
+        # TODO: add def set_channel_log_level, def set_master_log_level
+        _log.debug('Configuring log level')
+        self.channel_log_level: opendnp3.levels = channel_log_level
+        self.outstation_log_level: opendnp3.levels = outstation_log_level
+
+        self.channel.SetLogFilters(openpal.LogFilters(self.channel_log_level))
+        self.outstation.SetLogFilters(openpal.LogFilters(self.outstation_log_level))
+        # self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
+        # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
+
         # Put the Outstation singleton in OutstationApplication so that it can be used to send updates to the Master.
         MyOutStationNew.set_outstation(self.outstation)  # TODO: change MyOutStationNew to cls
 
@@ -125,7 +146,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         self.outstation.Enable()
 
         # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
-        time.sleep(3)  # TODO: justify the neccessity
+        # time.sleep(3)  # TODO: justify the neccessity
 
         # TODO: add tcp/ip connection validation process, e.g., using socket. Python - Test the TCP port connectivity
 

@@ -15,7 +15,7 @@ stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname
 _log = logging.getLogger(__name__)
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
-# _log.setLevel(logging.DEBUG)
+# _log.setLevel(logging.INFO)
 
 # alias
 ICollectionIndexedVal = Union[opendnp3.ICollectionIndexedAnalog,
@@ -67,19 +67,12 @@ class SOEHandler(opendnp3.ISOEHandler):
 
         This is an interface for SequenceOfEvents (SOE) callbacks from the Master stack to the application layer.
     """
-
-    def __init__(self):
+    # TODO: refactor to its own module
+    def __init__(self, soehandler_log_level=logging.INFO, *args, **kwargs):
         super(SOEHandler, self).__init__()
-        # self._class_index_value = None
-        # self._class_index__value_dict = {}
-        # self._class_index_value_nested_dict = {}
         self._gv_index_value_nested_dict = {}
         self._gv_ts_ind_val_dict: Dict[GroupVariation, Tuple[datetime.datetime, Dict[int, any]]] = {}
-
-        self._stale_if_longer_than_in_sec: int = 10  # TODO: implement public interface
-
-    # def get_class_index_value(self):
-    #     return self._class_index_value
+        _log.setLevel(soehandler_log_level)  # TODO: refactor to its own module (right now thi si global)
 
     def Process(self, info,
                 values: ICollectionIndexedVal,
@@ -134,16 +127,6 @@ class SOEHandler(opendnp3.ISOEHandler):
         self._gv_ts_ind_val_dict[info_gv] = (datetime.datetime.now(),
                                              self._gv_index_value_nested_dict.get(info_gv))
 
-    def update_stale_db(self):
-        """
-        deprecate
-
-        Force to update (set to None) if the data is stale
-        consider the database is stale if last update time from is long than `stale_if_longer_than`
-        stale_if_longer_than: int,
-        """
-        self._update_stale_db(stale_if_longer_than=self._stale_if_longer_than_in_sec)
-
     def _update_stale_db(self, stale_if_longer_than: int):
         """
         deprecate
@@ -160,27 +143,23 @@ class SOEHandler(opendnp3.ISOEHandler):
                 # pop/delete gv item that is stale
                 self._gv_ts_ind_val_dict.pop(gv)
                 self._gv_index_value_nested_dict.pop(gv)
-                _log.debug(f"===={gv} is stale and has been removed. "
+                _log.info(f"===={gv} is stale and has been removed. "
                            f"last_update_time_from_now: {last_update_time_from_now}, "
                            f"stale_if_longer_than: {stale_if_longer_than}."
                            )
 
     def Start(self):
-        _log.debug('In SOEHandler.Start')
+        _log.debug('In SOEHandler.Start====')
 
     def End(self):
         _log.debug('In SOEHandler.End')
 
     @property
     def gv_index_value_nested_dict(self):
-        # add validation to prevent stale db
-        # self._update_stale_db(self._stale_if_longer_than_in_sec)
         return self._gv_index_value_nested_dict
 
     @property
     def gv_ts_ind_val_dict(self):
-        # add validation to prevent stale db
-        # self._update_stale_db(self._stale_if_longer_than_in_sec)
         return self._gv_ts_ind_val_dict
 
 

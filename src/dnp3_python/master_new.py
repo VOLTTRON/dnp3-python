@@ -21,7 +21,7 @@ _log = logging.getLogger(__name__)
 # _log.addHandler(stdout_stream)
 # _log.setLevel(logging.DEBUG)
 # _log.setLevel(logging.ERROR)
-_log.setLevel(logging.WARNING)
+_log.setLevel(logging.INFO)
 
 from .master_utils import MyLogger, AppChannelListener, SOEHandler
 from .master_utils import parsing_gvid_to_gvcls
@@ -31,6 +31,7 @@ import datetime
 # alias DbPointVal
 DbPointVal = Union[float, int, bool, None]
 DbStorage = Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]  # e.g., {GroupVariation.Group30Var6: {0: 4.8, 1: 14.1, 2: 27.2, 3: 0.0, 4: 0.0}
+
 
 class MyMasterNew:
     """
@@ -64,6 +65,9 @@ class MyMasterNew:
                  # soe_handler=asiodnp3.PrintingSOEHandler().Create(),
                  soe_handler=SOEHandler(),
                  master_application=asiodnp3.DefaultMasterApplication().Create(),
+                 channel_log_level=opendnp3.levels.NORMAL,
+                 master_log_level=opendnp3.levels.NORMAL,
+
 
                  stack_config=None):
         """
@@ -92,7 +96,7 @@ class MyMasterNew:
         # init TCPClient(channel)
         _log.debug('Creating the DNP3 channel, a TCP client.')
         self.retry = asiopal.ChannelRetry().Default()
-        level = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS  # seems not working
+        level = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS  # TODO: check why this seems not working
         self.channel = self.manager.AddTCPClient(id="tcpclient",
                                                  levels=level,
                                                  retry=self.retry,
@@ -119,16 +123,28 @@ class MyMasterNew:
                                                   openpal.TimeDuration().Minutes(1),
                                                   opendnp3.TaskConfig().Default())
 
-        self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))  # TODO: add interface entrypoint
-        self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
-        # self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.NOTHING))  # TODO: add interface entrypoint
-        # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.NOTHING))
+        # Configure log level for channel(server) and master
+        # note: one of the following
+        #   ALL = -1
+        #   ALL_APP_COMMS = 129024
+        #   ALL_COMMS = 130720
+        #   NORMAL = 15  # INFO, WARN
+        #   NOTHING = 0
+        # TODO: add def set_channel_log_level, def set_master_log_level
+        _log.debug('Configuring log level')  # TODO: provide more info. Right now this log is not very useful
+        self.channel_log_level: opendnp3.levels = channel_log_level
+        self.master_log_level: opendnp3.levels = master_log_level
+
+        self.channel.SetLogFilters(openpal.LogFilters(self.channel_log_level))
+        self.master.SetLogFilters(openpal.LogFilters(self.master_log_level))
+        # self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
+        # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
 
         _log.debug('Enabling the master. At this point, traffic will start to flow between the Master and Outstations.')
         self.master.Enable()
 
         # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
-        time.sleep(3)  # TODO: justify the neccessity
+        # time.sleep(3)  # TODO: justify the neccessity
 
         # TODO: add tcp/ip connection validation process, e.g., using socket. Python - Test the TCP port connectivity
 
