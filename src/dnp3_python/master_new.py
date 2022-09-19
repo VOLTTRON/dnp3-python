@@ -535,6 +535,8 @@ class MyMasterNew:
         gv_id = opendnp3.GroupVariationID(group, variation)
         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
         vals: Dict[int, DbPointVal] = self.retrieve_val_by_gv(gv_id).get(gv_cls)
+        # TODO: keep on evoking retrieve_val_by_gv is not efficient especially it has to retry for multiple times.
+        # Solution: refactor retry logic to its own, instead of depending on retrieve_val_by_gv (_get_updated_val_storage)
 
         ret: Union[DbStorage, DbPointVal]
         if return_meta:
