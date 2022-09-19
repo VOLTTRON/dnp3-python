@@ -520,10 +520,11 @@ class MyMasterNew:
         gv_id = opendnp3.GroupVariationID(group, variation)
         return self.retrieve_val_by_gv(gv_id=gv_id)
 
-    def get_db_by_group_variation_index(self, group: int, variation: int, index: int) -> DbStorage:
+    def get_db_by_group_variation_index(self, group: int, variation: int, index: int,
+                                        return_meta=True) -> Union[DbStorage, DbPointVal]:
         """Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6), and index
 
-         Return ret_val: DbStorage
+         Return ret_val: DbStorage (return_meta=True, default), DbPointVal(return_meta=False)
         
          EXAMPLE:
          >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
@@ -534,10 +535,18 @@ class MyMasterNew:
         gv_id = opendnp3.GroupVariationID(group, variation)
         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
         vals: Dict[int, DbPointVal] = self.retrieve_val_by_gv(gv_id).get(gv_cls)
-        if vals:
-            return {gv_cls: {index: vals.get(index)}}
+
+        ret: Union[DbStorage, DbPointVal]
+        if return_meta:
+            if vals:
+                return {gv_cls: {index: vals.get(index)}}
+            else:
+                return {gv_cls: {index: None}}
         else:
-            return {gv_cls: {index: None}}
+            if vals:
+                return vals.get(index)
+            else:
+                return None
 
 
 
