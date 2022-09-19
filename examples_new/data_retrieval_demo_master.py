@@ -20,6 +20,7 @@ _log = logging.getLogger("data_retrieval_demo")
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 
+# logging.basicConfig(filename='demo.log', level=logging.DEBUG)
 
 def main():
     master_application = MyMasterNew()

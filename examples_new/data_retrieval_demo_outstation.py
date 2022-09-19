@@ -28,8 +28,8 @@ _log = logging.getLogger(__name__)
 _log = logging.getLogger("data_retrieval_demo_outstation")
 # _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
-_log.setLevel(logging.WARNING)
-_log.setLevel(logging.ERROR)
+# _log.setLevel(logging.WARNING)
+# _log.setLevel(logging.ERROR)
 
 
 def main():

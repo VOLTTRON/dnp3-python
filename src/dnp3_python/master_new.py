@@ -67,9 +67,11 @@ class MyMasterNew:
                  master_application=asiodnp3.DefaultMasterApplication().Create(),
                  channel_log_level=opendnp3.levels.NORMAL,
                  master_log_level=opendnp3.levels.NORMAL,
+                 num_polling_retry: int = 5,
+                 delay_polling_retry: float = 0.2,  # in seconds
 
-
-                 stack_config=None):
+                 stack_config=None,
+                 *args, **kwargs):
         """
         TODO: docstring here
         """
@@ -79,6 +81,9 @@ class MyMasterNew:
         self.listener = listener
         self.soe_handler: SOEHandler = soe_handler
         self.master_application = master_application
+
+        self.num_polling_retry = num_polling_retry
+        self.delay_polling_retry = delay_polling_retry  # in seconds
 
         _log.debug('Configuring the DNP3 stack.')
         self.stack_config = stack_config
@@ -253,10 +258,9 @@ class MyMasterNew:
         gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
 
         # retry logic to improve performance
-        # TODO: implement public interface to setup n_retry, sleep_delay
-        retry_max = 5
+        retry_max = self.num_polling_retry
         n_retry = 0
-        sleep_delay = 1
+        sleep_delay = self.delay_polling_retry
         while gv_db_val is None and n_retry < retry_max:
             self.master.ScanAllObjects(gvId=gv_id,
                                        config=config)
@@ -351,7 +355,6 @@ class MyMasterNew:
         :rtype: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]
 
         """
-        # TODO: refactor to reuse retrieve_all_obj_by_gvids
         gv_ids: Optional[List[opendnp3.GroupVariationID]]
         if gv_ids is None:  # using default
             gv_ids = [GroupVariationID(30, 6),
@@ -441,10 +444,9 @@ class MyMasterNew:
         gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
 
         # retry logic to improve performance
-        # TODO: implement public interface to setup n_retry, sleep_delay
-        retry_max = 5
+        retry_max = self.num_polling_retry
         n_retry = 0
-        sleep_delay = 0.2  # in seconds
+        sleep_delay = self.delay_polling_retry  # in seconds
         while gv_db_val is None and n_retry < retry_max:
             self.master.ScanAllObjects(gvId=gv_id,
                                        config=config)
@@ -453,7 +455,7 @@ class MyMasterNew:
             gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
             if gv_db_val is None:
                 _log.info(f"No value returned when polling {gv_cls}. "
-                             f"Starting retry No. {n_retry + 1} after {sleep_delay} sec.")
+                          f"Starting retry No. {n_retry + 1} (of {retry_max}) after {sleep_delay} sec.")
             n_retry += 1
             # print("=======n_retry, gv_db_val, gv_cls", n_retry, gv_db_val, gv_cls)
             # print("=======self.soe_handler", self.soe_handler)
