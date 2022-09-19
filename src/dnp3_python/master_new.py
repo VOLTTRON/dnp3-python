@@ -454,7 +454,7 @@ class MyMasterNew:
             time.sleep(sleep_delay)
             gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
             if gv_db_val is None:
-                _log.info(f"No value returned when polling {gv_cls}. "
+                _log.debug(f"No value returned when polling {gv_cls}. "
                           f"Starting retry No. {n_retry + 1} (of {retry_max}) after {sleep_delay} sec.")
             n_retry += 1
             # print("=======n_retry, gv_db_val, gv_cls", n_retry, gv_db_val, gv_cls)
