@@ -66,7 +66,7 @@ class MyMasterNew:
                  soe_handler=SOEHandler(),
                  master_application=asiodnp3.DefaultMasterApplication().Create(),
                  channel_log_level=opendnp3.levels.NORMAL,
-                 master_log_level=opendnp3.levels.NORMAL,
+                 master_log_level=7,  # wild guess, 7: warning, 15 (opendnp3.levels.NORMAL): info
                  num_polling_retry: int = 5,
                  delay_polling_retry: float = 0.2,  # in seconds
 
@@ -135,7 +135,7 @@ class MyMasterNew:
         #   ALL_COMMS = 130720
         #   NORMAL = 15  # INFO, WARN
         #   NOTHING = 0
-        # TODO: add def set_channel_log_level, def set_master_log_level
+        # TODO: Rewrite opendnp3.levels note: wild guess, 7: warning, 15 (opendnp3.levels.NORMAL): info
         _log.debug('Configuring log level')  # TODO: provide more info. Right now this log is not very useful
         self.channel_log_level: opendnp3.levels = channel_log_level
         self.master_log_level: opendnp3.levels = master_log_level
