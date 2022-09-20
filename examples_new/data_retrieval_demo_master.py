@@ -117,6 +117,9 @@ def main():
         result = master_application.get_db_by_group_variation_index(group=30, variation=6, index=0, return_meta=False)
         print(f"===important log: case7b get_db_by_group_variation_index ==== {count}", datetime.datetime.now(),
               result)
+        result = master_application.get_db_by_group_variation_index(group=40, variation=4, index=0, return_meta=False)
+        print(f"===important log: case7c get_db_by_group_variation_index ==== {count}", datetime.datetime.now(),
+              result)
 
     _log.debug('Exiting.')
     master_application.shutdown()

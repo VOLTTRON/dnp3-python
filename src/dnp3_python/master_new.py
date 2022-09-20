@@ -569,17 +569,19 @@ class MyMasterNew:
         ValStorage = Union[None, Tuple[datetime.datetime, Dict[int, DbPointVal]]]
         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
         val_storage: ValStorage = self.soe_handler.gv_ts_ind_val_dict.get(gv_cls)
-        ts = val_storage[0]
-        stale_if_longer_than = self.stale_if_longer_than
-        vals: Dict[int, DbPointVal]
-        if (datetime.datetime.now() - ts).total_seconds() > stale_if_longer_than:
+        if val_storage:
+            ts = val_storage[0]
+            stale_if_longer_than = self.stale_if_longer_than
+            vals: Dict[int, DbPointVal]
+            if (datetime.datetime.now() - ts).total_seconds() > stale_if_longer_than:
+                vals: Dict[int, DbPointVal] = self.get_db_by_group_variation(group, variation).get(gv_cls)
+            else:  # Use aggressive caching
+                vals: Dict[int, DbPointVal] = val_storage[1]
+        else:
             vals: Dict[int, DbPointVal] = self.get_db_by_group_variation(group, variation).get(gv_cls)
-        else:  # Use aggressive caching
-            vals = val_storage[1]
 
         # vals: Dict[int, DbPointVal] = self.get_db_by_group_variation(group, variation).get(gv_cls)
-        # TODO: keep on evoking retrieve_val_by_gv is not efficient especially it has to retry for multiple times.
-        # Solution: refactor retry logic to its own, instead of depending on retrieve_val_by_gv (_get_updated_val_storage)
+        # TODO: clean up the messy retry logic
 
         ret: Union[DbStorage, DbPointVal]
         if return_meta:
@@ -592,8 +594,6 @@ class MyMasterNew:
                 return vals.get(index)
             else:
                 return None
-
-
 
     def shutdown(self):
         # print("=======before master del self.__dict", self.__dict__)
