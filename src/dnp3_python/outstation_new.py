@@ -24,8 +24,6 @@ _log.setLevel(logging.DEBUG)
 _log.setLevel(logging.INFO)
 
 
-
-
 class MyOutStationNew(opendnp3.IOutstationApplication):
     """
             Interface for all outstation callback info except for control requests.
@@ -90,7 +88,6 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # # print("=======experiment", self.stack_config.dbConfig.binary.toView)
         # print("=======after self.stack_config", self.stack_config.dbConfig)
         # print("=======experiment", self.stack_config.dbConfig.sizes.numAnalog)
-
 
         # threads_to_allocate = 1
         # self.log_handler = MyLogger()
@@ -195,7 +192,8 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # AnalogInput
         db_config.analog[0].clazz = opendnp3.PointClass.Class2
         # db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var5  # note: experiment, Analog input - double-precision, floating-point with flag ref: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html#aa326dc3592a41ae60222051044fb084f
+        db_config.analog[
+            0].svariation = opendnp3.StaticAnalogVariation.Group30Var5  # note: experiment, Analog input - double-precision, floating-point with flag ref: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html#aa326dc3592a41ae60222051044fb084f
         db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
         db_config.analog[1].clazz = opendnp3.PointClass.Class2
         db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
@@ -261,15 +259,11 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         """
         cls.outstation = outstn
 
-
-
-
-
-
     @classmethod
     def process_point_value(cls, command_type, command, index, op_type):
         """
-            A PointValue was received from the Master. Process its payload.--For control workflow
+            A PointValue was received from the Master. Process its payload then up database (For control workflow)
+            Note: parse master operation command to outstation update command, then reuse apply_update.
 
         :param command_type: (string) Either 'Select' or 'Operate'.
         :param command: A ControlRelayOutputBlock or else a wrapped data value (AnalogOutputInt16, etc.).
@@ -277,59 +271,20 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         :param op_type: An OperateType, or None if command_type == 'Select'.
         """
         # TODO: add control logic in scenarios 'Select' or 'Operate' (to allow more sophisticated control behavior)
-        # print("======I am evoked, right?")
-        # print("command_type ", command_type)
-        # print("command ", command)
-        # print("command status ", command.status)
-        #
-        # print("command dir ", dir(command))
-        # # print("command var ", vars(command))
-        # # print("command rawCode ", command.rawCode) # TODO: this is working for binaryoutput 3 for ON, 4 for OFF
-        # print("command value ", command.value)  # TODO: this is working for analogoutput
+
         # print("command __getattribute__ ", command.__getattribute__)
-        # print("op_type ", op_type)
         _log.debug('Processing received point value for index {}: {}'.format(index, command))
 
-        # TODO: need to update the XXXOutput points
-        builder = asiodnp3.UpdateBuilder()
-        # builder.Update(opendnp3.BinaryOutputStatus(True), index)  # TODO: half way there. this is how to update BinaryOutput
-        # value = opendnp3.AnalogOutputStatus(float(command.value))
-
-        # builder.Update(opendnp3.AnalogOutputStatus(float(command.value)),
-        #                index)  # TODO: half way there. this is how to update AnalogOutput
-        # trial
-        print(f"master_cmd, {command}, outstation_cmd, xxx")
+        # parse master operation command to outstation update command
+        # Note: print("command rawCode ", command.rawCode) for BinaryOutput/ControlRelayOutputBlock
+        # Note: print("command value ", command.value)  for AnalogOutput/AnalogOutputDouble64, etc.
         outstation_cmd = master_to_outstation_command_parser(command)
-        # print(f"master_cmd, {command}, outstation_cmd, {outstation_cmd}")
-        builder.Update(outstation_cmd,
-                       index)
-        update = builder.Build()
-        cls.get_outstation().Apply(update)
+        # then reuse apply_update
+        cls.apply_update(outstation_cmd, index)
 
-        # trial hard-coded
-        # builder.Update(opendnp3.AnalogOutputStatus(123.543), index)
+        # builder.Update(outstation_cmd, index)
         # update = builder.Build()
         # cls.get_outstation().Apply(update)
-        #
-        # builder.Update(opendnp3.BinaryOutputStatus(True), index)
-        # update = builder.Build()
-        # cls.get_outstation().Apply(update)
-
-
-        # self.outstation.Apply(update)
-        # print("process_point_value",
-        #       'Recording {} measurement, index={}, '
-        #       'value={}, flag={}, time={}'
-        #       .format(type(value), index, value.value, value.flags.value, value.time.value)
-        #       )
-        print("process_point_value", f"command {command}, type(command), {type(command)}")
-        # try:
-        #     print("command rawCode ", command.rawCode)
-        # except Exception as e:
-        #     print(e)
-
-        # # TODO: this is a trial
-        # cls.apply_update(value=value, index=index)
 
     @classmethod
     def apply_update(cls,
@@ -347,11 +302,6 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         _log.debug('Recording {} measurement, index={}, '
                    'value={}, flag={}, time={}'
                    .format(type(value), index, value.value, value.flags.value, value.time.value))
-        print("apply_update",
-              'Recording {} measurement, index={}, '
-              'value={}, flag={}, time={}'
-              .format(type(value), index, value.value, value.flags.value, value.time.value)
-              )
         builder = asiodnp3.UpdateBuilder()
         builder.Update(value, index)
         update = builder.Build()
@@ -437,4 +387,3 @@ class MyLogger(openpal.ILogHandler):
         location = entry.location.rsplit('/')[-1] if entry.location else ''
         message = entry.message
         _log.debug('Log\tfilters={}\tlocation={}\tentry={}'.format(filters, location, message))
-

@@ -35,7 +35,7 @@ def main():
     master_application = MyMasterNew(
         # channel_log_level=opendnp3.levels.ALL_COMMS,
         # master_log_level=opendnp3.levels.ALL_COMMS
-        soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
+        # soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
                                      )
     _log.debug('Initialization complete. Master Station in command loop.')
     # cmd_interface_outstation = OutstationCmd()
@@ -102,7 +102,7 @@ def main():
             1,
             command_callback)
 
-        sleep(0.41)  # TODO: since it is aychnous, need this walk-around to assure update, use callback instead
+        # sleep(0.41)  # TODO: since it is aychnous, need this walk-around to assure update, use callback instead
 
 
         # master station retrieve value

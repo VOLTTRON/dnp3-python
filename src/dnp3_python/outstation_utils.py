@@ -45,7 +45,6 @@ def master_to_outstation_command_parser(master_cmd: MasterCmdType) -> Outstation
     """
     Used to parse send command to update command, e.g., opendnp3.AnalogOutputDouble64 -> AnalogOutputStatus
     """
-    print(f"==========type {type(master_cmd)}")
     # return None
     if type(master_cmd) in [opendnp3.AnalogOutputDouble64,
                             opendnp3.AnalogOutputFloat32,
@@ -55,9 +54,6 @@ def master_to_outstation_command_parser(master_cmd: MasterCmdType) -> Outstation
     elif type(master_cmd) is opendnp3.ControlRelayOutputBlock:
         # Note: ControlRelayOutputBlock requires to use hard-coded rawCode to retrieve value at this version.
         bi_value: bool
-        # print("command rawCode ", master_cmd.rawCode)
-        print("/////type(master_cmd)", type(master_cmd))
-        print("master_cmd.rawCode", master_cmd.rawCode)
         if master_cmd.rawCode == 3:
             bi_value = True
         elif master_cmd.rawCode == 4:
