@@ -78,15 +78,7 @@ def main():
                                                                    command_callback)
                 # TODO: redesign the command_callback workflow (command_callback may not be necessary)
 
-
         # update binaryInput value as well
-        # command_set = opendnp3.CommandSet()
-        # command_set.Add([
-        #     opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 0),
-        #     opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_OFF), 1),
-        #     opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 2)
-        # ])
-        # master_application.send_direct_operate_command_set(command_set, command_callback)
 
         master_application.send_direct_operate_command(
             opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON),
@@ -102,8 +94,14 @@ def main():
             1,
             command_callback)
 
-        # sleep(0.41)  # TODO: since it is aychnous, need this walk-around to assure update, use callback instead
-
+        # demo send_direct_operate_command_set
+        command_set = opendnp3.CommandSet()
+        command_set.Add([
+            opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 3),
+            opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_OFF), 4),
+            opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 5)
+        ])
+        master_application.send_direct_operate_command_set(command_set, command_callback)
 
         # master station retrieve value
 
