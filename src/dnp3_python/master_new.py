@@ -30,7 +30,8 @@ import datetime
 
 # alias DbPointVal
 DbPointVal = Union[float, int, bool, None]
-DbStorage = Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]  # e.g., {GroupVariation.Group30Var6: {0: 4.8, 1: 14.1, 2: 27.2, 3: 0.0, 4: 0.0}
+DbStorage = Dict[opendnp3.GroupVariation, Dict[
+    int, DbPointVal]]  # e.g., {GroupVariation.Group30Var6: {0: 4.8, 1: 14.1, 2: 27.2, 3: 0.0, 4: 0.0}
 
 
 class MyMasterNew:
@@ -345,9 +346,9 @@ class MyMasterNew:
         return filtered_db
 
     def _retrieve_all_obj_by_gvids_w_ts(self,
-                                  gv_ids: Optional[List[opendnp3.GroupVariationID]] = None,
-                                  config=opendnp3.TaskConfig().Default()
-                                  ) -> Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]:
+                                        gv_ids: Optional[List[opendnp3.GroupVariationID]] = None,
+                                        config=opendnp3.TaskConfig().Default()
+                                        ):
         """Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
 
         :param opendnp3.GroupVariationID gv_ids: list of group-variance Id
@@ -368,19 +369,21 @@ class MyMasterNew:
                       # GroupVariationID(42, 8),
                       # GroupVariationID(11, 2),
                       ]
-        filtered_db_w_ts: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]] = {}
+        filtered_db_w_ts = {}
         for gv_id in gv_ids:
             # self.retrieve_all_obj_by_gvid(gv_id=gv_id, config=config)
             self.retrieve_val_by_gv(gv_id=gv_id)
             gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
-            filtered_db_w_ts.update({gv_cls: self.soe_handler.gv_ts_ind_val_dict.get(gv_cls)})
+            # filtered_db_w_ts.update({gv_cls: self.soe_handler.gv_ts_ind_val_dict.get(gv_cls)})
+            filtered_db_w_ts.update({gv_cls: (self.soe_handler.gv_last_poll_dict.get(gv_cls),
+                                              self.soe_handler.gv_index_value_nested_dict.get(gv_cls))})
 
         return filtered_db_w_ts
 
     def retrieve_all_obj_by_gvis(self,
-                                  gv_id: opendnp3.GroupVariationID = None,
-                                  index=None
-                                  ) -> DbPointVal:
+                                 gv_id: opendnp3.GroupVariationID = None,
+                                 index=None
+                                 ) -> DbPointVal:
         """
         Retrive value based group-variation id and index
         """
@@ -404,29 +407,22 @@ class MyMasterNew:
         ValStorage = Union[None, Tuple[datetime.datetime, Dict[int, DbPointVal]]]
         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
         val_storage: ValStorage = self.soe_handler.gv_ts_ind_val_dict.get(gv_cls)
-        val_storage = self.soe_handler.gv_last_poll_dict.get(gv_cls), self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
+        val_storage = self.soe_handler.gv_last_poll_dict.get(gv_cls), self.soe_handler.gv_index_value_nested_dict.get(
+            gv_cls)
         ret_val: {opendnp3.GroupVariation: Dict[int, DbPointVal]}
 
-        # print("===========val_storage", val_storage)
-        # print("===========self.soe_handler.gv_ts_ind_val_dict", self.soe_handler.gv_ts_ind_val_dict)
-        # if val_storage is None:
-        if self.soe_handler.gv_last_poll_dict.get(gv_cls) is None:
-            ret_val = self._get_updated_val_storage(gv_id)
-            _log.debug(f"Retrieve {ret_val} EMPTY value from storage at {datetime.datetime.now()}")
-        else:
-            ts = val_storage[0]
-            ts = self.soe_handler.gv_last_poll_dict.get(gv_cls)
+        ts = self.soe_handler.gv_last_poll_dict.get(gv_cls)
+        stale_if_longer_than = self.stale_if_longer_than
+        if ts and (datetime.datetime.now() - ts).total_seconds() < stale_if_longer_than:
             # Note: there is caching logic to prevent overuse self.master.ScanAllObjects.
             # The stale checking logic is to prevent extensive caching
-            stale_if_longer_than = self.stale_if_longer_than
-            if (datetime.datetime.now() - ts).total_seconds() > stale_if_longer_than:
-                ret_val = self._get_updated_val_storage(gv_id)
-                _log.debug(f"Retrieve {ret_val} updated STALE from value storage at {datetime.datetime.now()}")
-            else:
-                val_body = val_storage[1]
-                val_body = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
-                ret_val = {gv_cls: val_body}
-                _log.debug(f"Retrieve {ret_val} from value storage at {datetime.datetime.now()}")
+            val_body = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
+            ret_val = {gv_cls: val_body}
+            _log.debug(f"Retrieve {ret_val} at {datetime.datetime.now()} using caching")
+        else:
+            ret_val = self._get_updated_val_storage(gv_id)
+            _log.debug(f"Retrieve {ret_val} at {datetime.datetime.now()}")
+
         return ret_val
 
     def _get_updated_val_storage(self, gv_id: opendnp3.GroupVariationID) -> DbStorage:
@@ -482,7 +478,6 @@ class MyMasterNew:
                 # self.soe_handler[info_gv]
 
         return {gv_cls: gv_db_val}
-
 
     def get_db_by_group_variation(self, group: int, variation: int) -> DbStorage:
         """Retrieve point value (from an outstation databse) based on Group-Variation pair.
@@ -554,7 +549,6 @@ class MyMasterNew:
         else:
             return None
 
-
     def shutdown(self):
         # print("=======before master del self.__dict", self.__dict__)
         time.sleep(2)  # Note: hard-coded sleep to avoid hanging process
@@ -563,4 +557,3 @@ class MyMasterNew:
         del self.master
         del self.channel
         del self.manager
-

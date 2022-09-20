@@ -70,11 +70,11 @@ class SOEHandler(opendnp3.ISOEHandler):
     # TODO: refactor to its own module
     def __init__(self, soehandler_log_level=logging.INFO, *args, **kwargs):
         super(SOEHandler, self).__init__()
-        self._gv_index_value_nested_dict = {}
+        self._gv_index_value_nested_dict: Dict[GroupVariation, Optional[Dict[int, DbPointVal]]] = {}
         self._gv_ts_ind_val_dict: Dict[GroupVariation, Tuple[datetime.datetime, Optional[Dict[int, DbPointVal]]]] = {}
         _log.setLevel(soehandler_log_level)  # TODO: refactor to its own module (right now thi si global)
 
-        self._gv_last_poll_dict: Dict[GroupVariation, datetime] = {}
+        self._gv_last_poll_dict: Dict[GroupVariation, Optional[datetime]] = {}
 
     def Process(self, info,
                 values: ICollectionIndexedVal,
@@ -160,7 +160,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         _log.debug('In SOEHandler.End')
 
     @property
-    def gv_index_value_nested_dict(self):
+    def gv_index_value_nested_dict(self) -> Dict[GroupVariation, Optional[Dict[int, DbPointVal]]]:
         return self._gv_index_value_nested_dict
 
     @property
@@ -168,7 +168,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         return self._gv_ts_ind_val_dict
 
     @property
-    def gv_last_poll_dict(self):
+    def gv_last_poll_dict(self) -> Dict[GroupVariation, Optional[datetime]]:
         return self._gv_last_poll_dict
 
 
