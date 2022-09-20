@@ -32,7 +32,9 @@ VisitorClass = Union[VisitorIndexedTimeAndInterval,
                      VisitorIndexedBinaryOutputStatus,
                      VisitorIndexedDoubleBitBinary]
 
-
+# TODO: add validating connection logic
+# TODO: add validating configuration logic
+#  (e.g., check if db at outstation side is configured correctly, i.e., OutstationStackConfig)
 class MyLogger(openpal.ILogHandler):
     """
         Override ILogHandler in this manner to implement application-specific logging behavior.
@@ -105,6 +107,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         for index, value in visitor.index_and_value:
             log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
             _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
+            # print(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
 
         info_gv: GroupVariation = info.gv
         visitor_ind_val: List[Tuple[int, DbPointVal]] = visitor.index_and_value
@@ -167,8 +170,9 @@ def command_callback(result: opendnp3.ICommandTaskResult = None):
     """
     :type result: opendnp3.ICommandTaskResult
     """
-    print("Received command result with summary: {}".format(opendnp3.TaskCompletionToString(result.summary)))
-    result.ForeachItem(collection_callback)
+    # print("Received command result with summary: {}".format(opendnp3.TaskCompletionToString(result.summary)))
+    # result.ForeachItem(collection_callback)
+    pass
 
 
 def restart_callback(result=opendnp3.RestartOperationResult()):

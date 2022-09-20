@@ -6,6 +6,9 @@ import time
 
 from typing import Union
 
+from .outstation_utils import master_to_outstation_command_parser
+from .outstation_utils import OutstationCmdType, MasterCmdType
+
 LOG_LEVELS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
 LOCAL_IP = "0.0.0.0"
 PORT = 20000
@@ -19,6 +22,8 @@ _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 # _log.setLevel(logging.ERROR)  # TODO: encapsulate this
 _log.setLevel(logging.INFO)
+
+
 
 
 class MyOutStationNew(opendnp3.IOutstationApplication):
@@ -156,18 +161,18 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
     # @staticmethod
     def configure_stack(self):
         """Set up the OpenDNP3 configuration."""
-        # stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
+        stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
         # stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.Empty())
         # stack_config = asiodnp3.OutstationStackConfig(dbSizes=opendnp3.DatabaseSizes.AnalogOnly(8))
         # TODO: expose DatabaseSizes to public interface
-        stack_config = asiodnp3.OutstationStackConfig(dbSizes=opendnp3.DatabaseSizes(numBinary=10,
-                                                                                     numDoubleBinary=0,
-                                                                                     numAnalog=8,
-                                                                                     numCounter=0,
-                                                                                     numFrozenCounter=0,
-                                                                                     numBinaryOutputStatus=0,
-                                                                                     numAnalogOutputStatus=0,
-                                                                                     numTimeAndInterval=0))
+        # stack_config = asiodnp3.OutstationStackConfig(dbSizes=opendnp3.DatabaseSizes(numBinary=10,
+        #                                                                              numDoubleBinary=0,
+        #                                                                              numAnalog=10,
+        #                                                                              numCounter=0,
+        #                                                                              numFrozenCounter=0,
+        #                                                                              numBinaryOutputStatus=10,
+        #                                                                              numAnalogOutputStatus=10,
+        #                                                                              numTimeAndInterval=0))
 
         stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
         stack_config.outstation.params.allowUnsolicited = True  # TODO: create interface for this
@@ -256,16 +261,22 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         """
         cls.outstation = outstn
 
+
+
+
+
+
     @classmethod
     def process_point_value(cls, command_type, command, index, op_type):
         """
-            A PointValue was received from the Master. Process its payload.
+            A PointValue was received from the Master. Process its payload.--For control workflow
 
         :param command_type: (string) Either 'Select' or 'Operate'.
         :param command: A ControlRelayOutputBlock or else a wrapped data value (AnalogOutputInt16, etc.).
         :param index: (integer) DNP3 index of the payload's data definition.
         :param op_type: An OperateType, or None if command_type == 'Select'.
         """
+        # TODO: add control logic in scenarios 'Select' or 'Operate' (to allow more sophisticated control behavior)
         # print("======I am evoked, right?")
         # print("command_type ", command_type)
         # print("command ", command)
@@ -282,10 +293,43 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # TODO: need to update the XXXOutput points
         builder = asiodnp3.UpdateBuilder()
         # builder.Update(opendnp3.BinaryOutputStatus(True), index)  # TODO: half way there. this is how to update BinaryOutput
-        builder.Update(opendnp3.AnalogOutputStatus(int(command.value)),
-                       index)  # TODO: half way there. this is how to update AnalogOutput
+        # value = opendnp3.AnalogOutputStatus(float(command.value))
+
+        # builder.Update(opendnp3.AnalogOutputStatus(float(command.value)),
+        #                index)  # TODO: half way there. this is how to update AnalogOutput
+        # trial
+        print(f"master_cmd, {command}, outstation_cmd, xxx")
+        outstation_cmd = master_to_outstation_command_parser(command)
+        # print(f"master_cmd, {command}, outstation_cmd, {outstation_cmd}")
+        builder.Update(outstation_cmd,
+                       index)
         update = builder.Build()
         cls.get_outstation().Apply(update)
+
+        # trial hard-coded
+        # builder.Update(opendnp3.AnalogOutputStatus(123.543), index)
+        # update = builder.Build()
+        # cls.get_outstation().Apply(update)
+        #
+        # builder.Update(opendnp3.BinaryOutputStatus(True), index)
+        # update = builder.Build()
+        # cls.get_outstation().Apply(update)
+
+
+        # self.outstation.Apply(update)
+        # print("process_point_value",
+        #       'Recording {} measurement, index={}, '
+        #       'value={}, flag={}, time={}'
+        #       .format(type(value), index, value.value, value.flags.value, value.time.value)
+        #       )
+        print("process_point_value", f"command {command}, type(command), {type(command)}")
+        # try:
+        #     print("command rawCode ", command.rawCode)
+        # except Exception as e:
+        #     print(e)
+
+        # # TODO: this is a trial
+        # cls.apply_update(value=value, index=index)
 
     @classmethod
     def apply_update(cls,
@@ -295,7 +339,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         """
             Record an opendnp3 data value (Analog, Binary, etc.) in the outstation's database.
 
-            The data value gets sent to the Master as a side-effect.
+            The data value gets sent to the Master as a side effect.
 
         :param value: An instance of Analog, Binary, or another opendnp3 data value.
         :param index: (integer) Index of the data definition in the opendnp3 database.
@@ -303,6 +347,11 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         _log.debug('Recording {} measurement, index={}, '
                    'value={}, flag={}, time={}'
                    .format(type(value), index, value.value, value.flags.value, value.time.value))
+        print("apply_update",
+              'Recording {} measurement, index={}, '
+              'value={}, flag={}, time={}'
+              .format(type(value), index, value.value, value.flags.value, value.time.value)
+              )
         builder = asiodnp3.UpdateBuilder()
         builder.Update(value, index)
         update = builder.Build()
@@ -332,6 +381,7 @@ class OutstationCommandHandler(opendnp3.ICommandHandler):
     def Select(self, command, index):
         """
             The Master sent a Select command to the Outstation. Handle it.
+            Note: master SelectAndOperate use this method
 
         :param command: ControlRelayOutputBlock,
                         AnalogOutputInt16, AnalogOutputInt32, AnalogOutputFloat32, or AnalogOutputDouble64.
@@ -346,6 +396,8 @@ class OutstationCommandHandler(opendnp3.ICommandHandler):
     def Operate(self, command, index, op_type):
         """
             The Master sent an Operate command to the Outstation. Handle it.
+            Note: master SelectAndOperate use this method
+            Note: master DirectOperate use this method
 
         :param command: ControlRelayOutputBlock,
                         AnalogOutputInt16, AnalogOutputInt32, AnalogOutputFloat32, or AnalogOutputDouble64.

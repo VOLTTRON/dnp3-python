@@ -104,6 +104,9 @@ def main():
         result = master_application.get_db_by_group_variation(group=30, variation=6)
         print(f"===important log: case6 get_db_by_group_variation ==== {count}", datetime.datetime.now(),
               result)
+        result = master_application.get_db_by_group_variation(group=1, variation=2)
+        print(f"===important log: case6b get_db_by_group_variation ==== {count}", datetime.datetime.now(),
+              result)
 
         # use case 7: retrieve point values specified by single GroupVariationIDs and index.
         # demo float AnalogInput,

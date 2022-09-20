@@ -13,6 +13,7 @@ from dnp3_python.master_utils import command_callback
 from dnp3_python.master_new import MyMasterNew
 
 from dnp3_python.outstation_new import MyOutStationNew
+from dnp3_python.master_utils import SOEHandler
 
 # import visitors
 
@@ -31,12 +32,17 @@ _log.setLevel(logging.DEBUG)
 
 def main():
     # cmd_interface_master = MasterCmd()
-    master_application = MyMasterNew(channel_log_level=opendnp3.levels.ALL_COMMS,
-                                     master_log_level=opendnp3.levels.ALL_COMMS)
+    master_application = MyMasterNew(
+        # channel_log_level=opendnp3.levels.ALL_COMMS,
+        # master_log_level=opendnp3.levels.ALL_COMMS
+        soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
+                                     )
     _log.debug('Initialization complete. Master Station in command loop.')
     # cmd_interface_outstation = OutstationCmd()
-    outstation_application = MyOutStationNew(channel_log_level=opendnp3.levels.ALL_COMMS,
-                                             outstation_log_level=opendnp3.levels.ALL_COMMS)
+    outstation_application = MyOutStationNew(
+        # channel_log_level=opendnp3.levels.ALL_COMMS,
+        # outstation_log_level=opendnp3.levels.ALL_COMMS
+    )
     _log.debug('Initialization complete. OutStation in command loop.')
 
     # sleep(2)  # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
@@ -67,36 +73,57 @@ def main():
             for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
                 p_val = random.choice(pts)
                 print(f"====== Master send command index {i} with {p_val}")
-                # cmd_interface_outstation.application.apply_update(opendnp3.Analog(float(p_val)), i)
-                # cmd_interface_master.application.send_direct_operate_command(opendnp3.AnalogOutputInt32(int(p_val)),
-                #                                                              i,
-                #                                                              command_callback)
-                master_application.send_select_and_operate_command(opendnp3.AnalogOutputInt32(int(p_val)),
-                                                                             i,
-                                                                             command_callback)  # TODO: explore difference between send_direct_operate_command and send_select_and_operate_command
+                master_application.send_direct_operate_command(opendnp3.AnalogOutputDouble64(float(p_val)),
+                                                                   i,
+                                                                   command_callback)
                 # TODO: redesign the command_callback workflow (command_callback may not be necessary)
 
-        # sleep(0.41)  # TODO: since it is aychnous, need this walk-around to assure update, use callback instead
+
+        # update binaryInput value as well
+        # command_set = opendnp3.CommandSet()
+        # command_set.Add([
+        #     opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 0),
+        #     opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_OFF), 1),
+        #     opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 2)
+        # ])
+        # master_application.send_direct_operate_command_set(command_set, command_callback)
+
+        master_application.send_direct_operate_command(
+            opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON),
+            0,
+            command_callback)
+        master_application.send_direct_operate_command(
+            opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON),
+            2,
+            command_callback)
+        p_val = random.choice([opendnp3.ControlCode.LATCH_ON, opendnp3.ControlCode.LATCH_OFF])
+        master_application.send_direct_operate_command(
+            opendnp3.ControlRelayOutputBlock(p_val),
+            1,
+            command_callback)
+
+        sleep(0.41)  # TODO: since it is aychnous, need this walk-around to assure update, use callback instead
 
 
         # master station retrieve value
 
         # use case 6: retrieve point values specified by single GroupVariationIDs and index.
-        # demo float AnalogInput,
-        # result = master_application.retrieve_all_obj_by_gvids(gv_ids=[opendnp3.GroupVariationID(30, 6),
-        #                                                               opendnp3.GroupVariationID(1, 2)])
-        # result = master_application.retrieve_val_by_gv(gv_id=opendnp3.GroupVariationID(30, 6),)
+        # demo float AnalogOutput,
         result = master_application.get_db_by_group_variation(group=40, variation=4)
         print(f"===important log: case6 get_db_by_group_variation ==== {count}", datetime.datetime.now(),
               result)
 
-        result = master_application.get_db_by_group_variation(group=40, variation=1)
+        result = master_application.get_db_by_group_variation(group=40, variation=2)
         print(f"===important log: case6b get_db_by_group_variation ==== {count}", datetime.datetime.now(),
               result)
 
-        result = master_application.get_db_by_group_variation(group=30, variation=6)
-        print(f"===important log: case6b get_db_by_group_variation ==== {count}", datetime.datetime.now(),
+        result = master_application.get_db_by_group_variation(group=10, variation=2)
+        print(f"===important log: case6c get_db_by_group_variation ==== {count}", datetime.datetime.now(),
               result)
+
+        # result = master_application.get_db_by_group_variation(group=30, variation=6)
+        # print(f"===important log: case6b get_db_by_group_variation ==== {count}", datetime.datetime.now(),
+        #       result)
 
     _log.debug('Exiting.')
     master_application.shutdown()

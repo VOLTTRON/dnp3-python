@@ -163,10 +163,11 @@ class MyMasterNew:
                                                    opendnp3.AnalogOutputFloat32,
                                                    opendnp3.AnalogOutputDouble64],
                                     index: int,
-                                    callback: Callable[[opendnp3.ICommandTaskResult], None],
+                                    callback: Callable[[opendnp3.ICommandTaskResult], None] = None,
                                     config: opendnp3.TaskConfig = opendnp3.TaskConfig().Default()):
         """
             Direct operate a single command
+            Note: send_direct_operate_command will evoke outstation side def process_point_value once as side effect
 
         :param command: command to operate
         :param index: index of the command
@@ -190,6 +191,7 @@ class MyMasterNew:
                                         config=opendnp3.TaskConfig().Default()):  # TODO: compare to send_direct_operate_command, what's the difference
         """
             Select and operate a single command
+            Note: send_direct_operate_command will evoke outstation side def process_point_value TWICE as side effect
 
         :param command: command to operate
         :param index: index of the command
