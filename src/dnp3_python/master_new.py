@@ -380,17 +380,17 @@ class MyMasterNew:
 
         return filtered_db_w_ts
 
-    def retrieve_all_obj_by_gvis(self,
-                                 gv_id: opendnp3.GroupVariationID = None,
-                                 index=None
-                                 ) -> DbPointVal:
-        """
-        Retrive value based group-variation id and index
-        """
-
-        gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
-        val: DbPointVal = self.soe_handler.gv_index_value_nested_dict.get(gv_cls).get(index)
-        return val
+    # def retrieve_all_obj_by_gvis(self,
+    #                              gv_id: opendnp3.GroupVariationID = None,
+    #                              index=None
+    #                              ) -> DbPointVal:
+    #     """
+    #     Retrive value based group-variation id and index
+    #     """
+    #
+    #     gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
+    #     val: DbPointVal = self.soe_handler.gv_index_value_nested_dict.get(gv_cls).get(index)
+    #     return val
 
     def retrieve_val_by_gv(self, gv_id: opendnp3.GroupVariationID) -> DbStorage:
         """Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6)
@@ -438,7 +438,6 @@ class MyMasterNew:
         self.soe_handler.gv_last_poll_dict[gv_cls] = None
         # perform scan
         config = opendnp3.TaskConfig().Default()
-        # TODO: refactor hard-coded retry and sleep, allow config
         # TODO: "prettify" the following while loop workflow. e.g., helper function + recurrent function
         self.master.ScanAllObjects(gvId=gv_id,
                                    config=config)

@@ -74,7 +74,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         self._gv_ts_ind_val_dict: Dict[GroupVariation, Tuple[datetime.datetime, Optional[Dict[int, DbPointVal]]]] = {}
         _log.setLevel(soehandler_log_level)  # TODO: refactor to its own module (right now thi si global)
 
-        self._gv_last_poll_dict: Dict[GroupVariation, Optional[datetime]] = {}
+        self._gv_last_poll_dict: Dict[GroupVariation, Optional[datetime.datetime]] = {}
 
     def Process(self, info,
                 values: ICollectionIndexedVal,
@@ -132,27 +132,6 @@ class SOEHandler(opendnp3.ISOEHandler):
         # Use another layer of storage to handle timestamp related logic
         self._gv_last_poll_dict[info_gv] = datetime.datetime.now()
 
-    # def _update_stale_db(self, stale_if_longer_than: int):
-    #     """
-    #     deprecate
-    #
-    #     Force to update (set to None) if the data is stale
-    #     consider the database is stale if last update time from is long than `stale_if_longer_than`
-    #     stale_if_longer_than: int,
-    #     """
-    #     dict_keys = list(self._gv_ts_ind_val_dict.keys())  # to prevent "dictionary changed size during iteration"
-    #     for gv in dict_keys:
-    #         last_update_time: datetime.datetime = self._gv_ts_ind_val_dict.get(gv)[0]
-    #         last_update_time_from_now = (datetime.datetime.now() - last_update_time).total_seconds()
-    #         if last_update_time_from_now >= stale_if_longer_than:
-    #             # pop/delete gv item that is stale
-    #             self._gv_ts_ind_val_dict.pop(gv)
-    #             self._gv_index_value_nested_dict.pop(gv)
-    #             _log.info(f"===={gv} is stale and has been removed. "
-    #                        f"last_update_time_from_now: {last_update_time_from_now}, "
-    #                        f"stale_if_longer_than: {stale_if_longer_than}."
-    #                        )
-
     def Start(self):
         _log.debug('In SOEHandler.Start====')
 
@@ -168,7 +147,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         return self._gv_ts_ind_val_dict
 
     @property
-    def gv_last_poll_dict(self) -> Dict[GroupVariation, Optional[datetime]]:
+    def gv_last_poll_dict(self) -> Dict[GroupVariation, Optional[datetime.datetime]]:
         return self._gv_last_poll_dict
 
 
