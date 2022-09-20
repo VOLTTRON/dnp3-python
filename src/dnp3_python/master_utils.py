@@ -74,6 +74,8 @@ class SOEHandler(opendnp3.ISOEHandler):
         self._gv_ts_ind_val_dict: Dict[GroupVariation, Tuple[datetime.datetime, Optional[Dict[int, DbPointVal]]]] = {}
         _log.setLevel(soehandler_log_level)  # TODO: refactor to its own module (right now thi si global)
 
+        self._gv_last_poll_dict: Dict[GroupVariation, datetime] = {}
+
     def Process(self, info,
                 values: ICollectionIndexedVal,
                 *args, **kwargs):
@@ -112,7 +114,7 @@ class SOEHandler(opendnp3.ISOEHandler):
     def _post_process(self, info_gv: GroupVariation, visitor_ind_val: List[Tuple[int, DbPointVal]]):
         """
         SOEHandler post process logic to stage data at MasterStation side
-        improve performance: e.g., consistent output
+        to improve performance: e.g., consistent output
 
         info_gv: GroupVariation,
         visitor_ind_val: List[Tuple[int, DbPointVal]]
@@ -127,6 +129,8 @@ class SOEHandler(opendnp3.ISOEHandler):
         # Use another layer of storage to handle timestamp related logic
         self._gv_ts_ind_val_dict[info_gv] = (datetime.datetime.now(),
                                              self._gv_index_value_nested_dict.get(info_gv))
+        # Use another layer of storage to handle timestamp related logic
+        self._gv_last_poll_dict[info_gv] = datetime.datetime.now()
 
     # def _update_stale_db(self, stale_if_longer_than: int):
     #     """
@@ -162,6 +166,10 @@ class SOEHandler(opendnp3.ISOEHandler):
     @property
     def gv_ts_ind_val_dict(self):
         return self._gv_ts_ind_val_dict
+
+    @property
+    def gv_last_poll_dict(self):
+        return self._gv_last_poll_dict
 
 
 def collection_callback(result=None):
