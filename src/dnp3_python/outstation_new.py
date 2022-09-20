@@ -266,7 +266,8 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
             Note: parse master operation command to outstation update command, then reuse apply_update.
 
         :param command_type: (string) Either 'Select' or 'Operate'.
-        :param command: A ControlRelayOutputBlock or else a wrapped data value (AnalogOutputInt16, etc.).
+        :param command: One of ControlRelayOutputBlock, AnalogOutputDouble64, AnalogOutputFloat32, AnalogOutputInt32,
+                        or AnalogOutputInt16.
         :param index: (integer) DNP3 index of the payload's data definition.
         :param op_type: An OperateType, or None if command_type == 'Select'.
         """
@@ -281,10 +282,6 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         outstation_cmd = master_to_outstation_command_parser(command)
         # then reuse apply_update
         cls.apply_update(outstation_cmd, index)
-
-        # builder.Update(outstation_cmd, index)
-        # update = builder.Build()
-        # cls.get_outstation().Apply(update)
 
     @classmethod
     def apply_update(cls,

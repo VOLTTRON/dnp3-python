@@ -18,21 +18,6 @@ _log.setLevel(logging.DEBUG)
 # _log.setLevel(logging.INFO)
 
 # alias
-# ICollectionIndexedVal = Union[opendnp3.ICollectionIndexedAnalog,
-#                               opendnp3.ICollectionIndexedBinary,
-#                               opendnp3.ICollectionIndexedAnalogOutputStatus,
-#                               opendnp3.ICollectionIndexedBinaryOutputStatus]
-# DbPointVal = Union[float, int, bool]
-# VisitorClass = Union[VisitorIndexedTimeAndInterval,
-#                      VisitorIndexedAnalog,
-#                      VisitorIndexedBinary,
-#                      VisitorIndexedCounter,
-#                      VisitorIndexedFrozenCounter,
-#                      VisitorIndexedAnalogOutputStatus,
-#                      VisitorIndexedBinaryOutputStatus,
-#                      VisitorIndexedDoubleBitBinary]
-
-# alias
 OutstationCmdType = Union[opendnp3.Analog, opendnp3.Binary, opendnp3.AnalogOutputStatus, opendnp3.BinaryOutputStatus]
 MasterCmdType = Union[opendnp3.AnalogOutputDouble64,
                       opendnp3.AnalogOutputFloat32,
