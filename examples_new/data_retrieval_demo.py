@@ -53,6 +53,9 @@ def main():
                 outstation_application.apply_update(opendnp3.Analog(value=float(p_val),
                                                                     flags=opendnp3.Flags(24),
                                                                     time=opendnp3.DNPTime(3094)), i)
+                # outstation_application.apply_update(opendnp3.AnalogIn(value=float(p_val),
+                #                                                     flags=opendnp3.Flags(24),
+                #                                                     time=opendnp3.DNPTime(3094)), i)
 
         # update binaryInput value as well
         if count % 3 == 1:
@@ -109,6 +112,9 @@ def main():
         result = master_application.get_db_by_group_variation(group=1, variation=2)
         print(f"===important log: case6b get_db_by_group_variation ==== {count}", datetime.datetime.now(),
               result)
+        result = master_application.get_db_by_group_variation(group=30, variation=1)
+        print(f"===important log: case6c get_db_by_group_variation ==== {count}", datetime.datetime.now(),
+              result)
 
         # use case 7: retrieve point values specified by single GroupVariationIDs and index.
         # demo float AnalogInput,
@@ -118,7 +124,7 @@ def main():
         result = master_application.get_db_by_group_variation_index(group=30, variation=6, index=0)
         print(f"===important log: case7 get_db_by_group_variation_index ==== {count}", datetime.datetime.now(),
               result)
-        result = master_application.get_val_by_group_variation_index(group=30, variation=6, index=0)
+        result = master_application.get_val_by_group_variation_index(group=30, variation=6, index=1)
         print(f"===important log: case7b get_db_by_group_variation_index ==== {count}", datetime.datetime.now(),
               result)
         result = master_application.get_val_by_group_variation_index(group=40, variation=4, index=0)

@@ -32,6 +32,7 @@ VisitorClass = Union[VisitorIndexedTimeAndInterval,
                      VisitorIndexedBinaryOutputStatus,
                      VisitorIndexedDoubleBitBinary]
 
+
 # TODO: add validating connection logic
 # TODO: add validating configuration logic
 #  (e.g., check if db at outstation side is configured correctly, i.e., OutstationStackConfig)
@@ -69,6 +70,7 @@ class SOEHandler(opendnp3.ISOEHandler):
 
         This is an interface for SequenceOfEvents (SOE) callbacks from the Master stack to the application layer.
     """
+
     # TODO: refactor to its own module
     def __init__(self, soehandler_log_level=logging.INFO, *args, **kwargs):
         super(SOEHandler, self).__init__()
@@ -88,6 +90,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         :param info: HeaderInfo
         :param values: A collection of values received from the Outstation (various data types are possible).
         """
+        print("=========Process, info.gv, values", info.gv, values)
         visitor_class_types: dict = {
             opendnp3.ICollectionIndexedBinary: VisitorIndexedBinary,
             opendnp3.ICollectionIndexedDoubleBitBinary: VisitorIndexedDoubleBitBinary,
@@ -100,6 +103,34 @@ class SOEHandler(opendnp3.ISOEHandler):
         }
         visitor_class: Union[Callable, VisitorClass] = visitor_class_types[type(values)]
         visitor = visitor_class()  # init
+        # hot-fix VisitorXXAnalog do not distinguish float and integer.
+        if visitor_class == VisitorIndexedAnalog:
+            # Parsing to Int
+            if info.gv in [
+                # GroupVariation.Group30Var0,
+                GroupVariation.Group30Var1,
+                GroupVariation.Group30Var2,
+                GroupVariation.Group30Var3,
+                GroupVariation.Group30Var4,
+                # GroupVariation.Group32Var0,
+                GroupVariation.Group32Var1,
+                GroupVariation.Group32Var2,
+                GroupVariation.Group32Var3,
+                GroupVariation.Group32Var4
+            ]:
+                visitor = VisitorIndexedAnalogInt()
+        elif visitor_class == VisitorIndexedAnalogOutputStatus:
+            if info.gv in [
+                # GroupVariation.Group40Var0,
+                GroupVariation.Group40Var1,
+                GroupVariation.Group40Var2,
+                # GroupVariation.Group42Var0,
+                GroupVariation.Group42Var1,
+                GroupVariation.Group42Var2,
+                GroupVariation.Group42Var3,
+                GroupVariation.Group42Var4
+            ]:
+                visitor = VisitorIndexedAnalogOutputStatusInt()
         # Note: mystery method, magic side effect to update visitor.index_and_value
         values.Foreach(visitor)
 
