@@ -16,15 +16,17 @@ stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
 
 _log = logging.getLogger(__name__)
-_log = logging.getLogger("data_retrieval_demo")
+# _log = logging.getLogger("data_retrieval_demo")
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 
 
 def main():
     master_application = MyMasterNew()
+    master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
     outstation_application = MyOutStationNew()
+    outstation_application.start()
     _log.debug('Initialization complete. OutStation in command loop.')
 
     count = 0

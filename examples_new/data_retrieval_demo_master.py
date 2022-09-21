@@ -24,6 +24,7 @@ _log.setLevel(logging.DEBUG)
 
 def main():
     master_application = MyMasterNew()
+    master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
     # outstation_application = MyOutStationNew()
     # _log.debug('Initialization complete. OutStation in command loop.')

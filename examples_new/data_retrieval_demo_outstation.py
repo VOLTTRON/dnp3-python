@@ -41,6 +41,7 @@ def main():
     # master_application = MyMasterNew()
     # _log.debug('Initialization complete. Master Station in command loop.')
     outstation_application = MyOutStationNew()
+    outstation_application.start()
     _log.debug('Initialization complete. OutStation in command loop.')
 
     count = 0

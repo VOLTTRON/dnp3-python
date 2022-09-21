@@ -37,12 +37,14 @@ def main():
         # master_log_level=opendnp3.levels.ALL_COMMS
         # soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
                                      )
+    master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
     # cmd_interface_outstation = OutstationCmd()
     outstation_application = MyOutStationNew(
         # channel_log_level=opendnp3.levels.ALL_COMMS,
         # outstation_log_level=opendnp3.levels.ALL_COMMS
     )
+    outstation_application.start()
     _log.debug('Initialization complete. OutStation in command loop.')
 
     # sleep(2)  # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
