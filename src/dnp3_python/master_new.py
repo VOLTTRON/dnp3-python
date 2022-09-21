@@ -78,6 +78,8 @@ class MyMasterNew:
         TODO: docstring here
         """
         # TODO: refactor to apply factory pattern, allow further config
+        # - the init parameter list is a bit long.
+        # - allow configuration method after init
 
         self.log_handler = log_handler
         self.listener = listener
@@ -147,14 +149,6 @@ class MyMasterNew:
         self.master.SetLogFilters(openpal.LogFilters(self.master_log_level))
         # self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
         # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
-
-        _log.debug('Enabling the master. At this point, traffic will start to flow between the Master and Outstations.')
-        self.master.Enable()
-
-        # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
-        # time.sleep(3)  # TODO: justify the neccessity
-
-        # TODO: add tcp/ip connection validation process, e.g., using socket. Python - Test the TCP port connectivity
 
     def send_direct_operate_command(self,
                                     command: Union[opendnp3.ControlRelayOutputBlock,
@@ -551,6 +545,10 @@ class MyMasterNew:
             return val_w_meta.get(gv_cls).get(index)
         else:
             return None
+
+    def start(self):
+        _log.debug('Enabling the master.')
+        self.master.Enable()
 
     def shutdown(self):
         # print("=======before master del self.__dict", self.__dict__)

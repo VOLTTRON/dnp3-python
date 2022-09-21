@@ -65,6 +65,10 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
                  ):
         super().__init__()
 
+        # TODO: refactor to apply factory pattern, allow further config
+        # - the init parameter list is a bit long.
+        # - allow configuration method after init
+
         self.masterstation_id_int = masterstation_id_int
         self.outstation_id_int = outstation_id_int
 
@@ -144,16 +148,6 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # Put the Outstation singleton in OutstationApplication so that it can be used to send updates to the Master.
         MyOutStationNew.set_outstation(self.outstation)  # TODO: change MyOutStationNew to cls
 
-        _log.debug('Enabling the outstation. Traffic will now start to flow.')
-        self.outstation.Enable()
-
-        # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
-        # time.sleep(3)  # TODO: justify the neccessity
-
-        # TODO: add tcp/ip connection validation process, e.g., using socket. Python - Test the TCP port connectivity
-
-        # print("===========self init __dict__", self.__dict__)
-        # print("===========super init __dict__", super.__dict__)
 
     # @staticmethod
     def configure_stack(self):
@@ -220,6 +214,10 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         db_config.boStatus[0].clazz = opendnp3.PointClass.Class2
         db_config.boStatus[0].svariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
         # db_config.boStatus[0].evariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
+
+    def start(self):
+        _log.debug('Enabling the outstation.')
+        self.outstation.Enable()
 
     def shutdown(self):
         """

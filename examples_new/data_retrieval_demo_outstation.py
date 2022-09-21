@@ -63,7 +63,7 @@ def main():
             point_values_2 = [24.2, 27.2, 22.2]
             for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
                 p_val = random.choice(pts)
-                print(f"====== Outstation update index {i} with {p_val}")
+                print(f"====== Outstation update index {i} with {p_val} at {datetime.datetime.now()}")
                 outstation_application.apply_update(opendnp3.Analog(value=float(p_val),
                                                                     flags=opendnp3.Flags(24),
                                                                     time=opendnp3.DNPTime(3094)), i)
