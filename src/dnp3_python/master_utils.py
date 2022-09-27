@@ -90,7 +90,7 @@ class SOEHandler(opendnp3.ISOEHandler):
         :param info: HeaderInfo
         :param values: A collection of values received from the Outstation (various data types are possible).
         """
-        print("=========Process, info.gv, values", info.gv, values)
+        # print("=========Process, info.gv, values", info.gv, values)
         visitor_class_types: dict = {
             opendnp3.ICollectionIndexedBinary: VisitorIndexedBinary,
             opendnp3.ICollectionIndexedDoubleBitBinary: VisitorIndexedDoubleBitBinary,

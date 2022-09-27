@@ -4,10 +4,11 @@ import sys
 from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
 import time
 
-from typing import Union
+from typing import Union, Type
 
 from .outstation_utils import master_to_outstation_command_parser
 from .outstation_utils import OutstationCmdType, MasterCmdType
+# from .outstation_utils import MeasurementType
 
 LOG_LEVELS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
 LOCAL_IP = "0.0.0.0"
@@ -22,6 +23,9 @@ _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 # _log.setLevel(logging.ERROR)  # TODO: encapsulate this
 _log.setLevel(logging.INFO)
+
+# alias
+PointValueType = Union[opendnp3.Analog, opendnp3.Binary, opendnp3.AnalogOutputStatus, opendnp3.BinaryOutputStatus]
 
 
 class MyOutStationNew(opendnp3.IOutstationApplication):
@@ -283,28 +287,25 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
 
     @classmethod
     def apply_update(cls,
-                     value: Union[opendnp3.Analog, opendnp3.Binary,
-                                  opendnp3.AnalogOutputStatus, opendnp3.BinaryOutputStatus],
+                     measurement: OutstationCmdType,
                      index):
         """
             Record an opendnp3 data value (Analog, Binary, etc.) in the outstation's database.
+            Note: measurement based on asiodnp3.UpdateBuilder.Update(**args)
 
             The data value gets sent to the Master as a side effect.
 
-        :param value: An instance of Analog, Binary, or another opendnp3 data value.
+        :param measurement: An instance of Analog, Binary, or another opendnp3 data value.
         :param index: (integer) Index of the data definition in the opendnp3 database.
         """
         _log.debug('Recording {} measurement, index={}, '
                    'value={}, flag={}, time={}'
-                   .format(type(value), index, value.value, value.flags.value, value.time.value))
-        builder = asiodnp3.UpdateBuilder()
-        builder.Update(value, index)
-        update = builder.Build()
+                   .format(type(measurement), index, measurement.value, measurement.flags.value, measurement.time.value))
+        # builder = asiodnp3.UpdateBuilder()
+        # builder.Update(measurement, index)
+        # update = builder.Build()
+        update = asiodnp3.UpdateBuilder().Update(measurement, index).Build()
         cls.get_outstation().Apply(update)
-
-
-# alias
-PointValueType = Union[opendnp3.Analog, opendnp3.Binary, opendnp3.AnalogOutputStatus, opendnp3.BinaryOutputStatus]
 
 
 class OutstationCommandHandler(opendnp3.ICommandHandler):
