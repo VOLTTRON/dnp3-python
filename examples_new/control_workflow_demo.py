@@ -76,9 +76,8 @@ def main():
                 p_val = random.choice(pts)
                 print(f"====== Master send command index {i} with {p_val}")
                 master_application.send_direct_operate_command(opendnp3.AnalogOutputDouble64(float(p_val)),
-                                                                   i,
-                                                                   command_callback)
-                # TODO: redesign the command_callback workflow (command_callback may not be necessary)
+                                                               i,
+                                                               command_callback)
 
         # update binaryInput value as well
 
@@ -104,6 +103,28 @@ def main():
             opendnp3.WithIndex(opendnp3.ControlRelayOutputBlock(opendnp3.ControlCode.LATCH_ON), 5)
         ])
         master_application.send_direct_operate_command_set(command_set, command_callback)
+
+        # demo using send_direct_point_command (with consistent parameter than send_direct_operate_command)
+        # operate on 4,5,6 (or # operate on 8,9,10)
+        if count % 3 == 1:
+            point_values_0 = [4.8, 7.8, 2.8]
+            point_values_1 = [14.1, 17.1, 12.1]
+            point_values_2 = [24.2, 27.2, 22.2]
+            for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
+                p_val = random.choice(pts)
+                print(f"====== Master send command index {i} with {p_val}")
+                # master_application.send_direct_operate_command(opendnp3.AnalogOutputDouble64(float(p_val)),
+                #                                                i,
+                #                                                command_callback)
+                # for group40var4 AnalogOutputDouble
+                master_application.send_direct_point_command(group=40, variation=4, index=i + 4,
+                                                             val_to_set=p_val + 0.0025)  # operate on 4,5,6
+                # for group40var2 AnalogOutputInt32
+                master_application.send_direct_point_command(group=40, variation=2, index=i + 4 + 4,
+                                                             val_to_set=int(p_val))  # operate on 8,9,10
+                # for group10var2 BinaryOutput
+                master_application.send_direct_point_command(group=10, variation=2, index=i + 4 + 4,
+                                                             val_to_set=True)  # operate on 8,9,10
 
         # master station retrieve value
 

@@ -7,7 +7,7 @@ from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
 from .visitors import *
 from pydnp3.opendnp3 import GroupVariation, GroupVariationID
 
-from typing import Callable, Union, Dict, Tuple, List, Optional
+from typing import Callable, Union, Dict, Tuple, List, Optional, Type
 
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
@@ -31,6 +31,12 @@ VisitorClass = Union[VisitorIndexedTimeAndInterval,
                      VisitorIndexedAnalogOutputStatus,
                      VisitorIndexedBinaryOutputStatus,
                      VisitorIndexedDoubleBitBinary]
+
+MasterCmdType = Union[opendnp3.AnalogOutputDouble64,
+                      opendnp3.AnalogOutputFloat32,
+                      opendnp3.AnalogOutputInt32,
+                      opendnp3.AnalogOutputInt16,
+                      opendnp3.ControlRelayOutputBlock]
 
 
 # TODO: add validating connection logic
@@ -259,3 +265,40 @@ def parsing_gvid_to_gvcls(gvid: GroupVariationID) -> GroupVariation:
     #     gv_cls = GroupVariation.Group11Var2
 
     return gv_cls
+
+
+def parsing_gv_to_mastercmdtype(group: int, variation: int, val_to_set: DbPointVal) -> MasterCmdType:
+    pass
+    """
+    hard-coded parsing, e.g., group40, variation:4 -> opendnp3.AnalogOutputDouble64
+    """
+    master_cmd: MasterCmdType
+    # AnalogOutput
+    if group == 40:
+        if not type(val_to_set) in [float, int]:
+            raise ValueError(f"val_to_set {val_to_set} of MasterCmdType group {group}, variation {variation} invalid.")
+        if variation == 1:
+            master_cmd = opendnp3.AnalogOutputInt32()
+        elif variation == 2:
+            master_cmd = opendnp3.AnalogOutputInt16()
+        elif variation == 3:
+            master_cmd = opendnp3.AnalogOutputFloat32()
+        elif variation == 4:
+            master_cmd = opendnp3.AnalogOutputDouble64()
+        else:
+            raise ValueError(f"val_to_set {val_to_set} of MasterCmdType group {group} invalid.")
+
+        master_cmd.value = val_to_set
+    # BinaryOutput
+    elif group == 10 and variation in [1, 2]:
+        master_cmd = opendnp3.ControlRelayOutputBlock()
+        if not type(val_to_set) is bool:
+            raise ValueError(f"val_to_set {val_to_set} of MasterCmdType group {group}, variation {variation} invalid.")
+        if val_to_set is True:
+            master_cmd.rawCode = 3
+        else:
+            master_cmd.rawCode = 4
+    else:
+        raise ValueError(f"val_to_set {val_to_set} of MasterCmdType group {group} invalid.")
+
+    return master_cmd

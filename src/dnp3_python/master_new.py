@@ -24,7 +24,7 @@ _log = logging.getLogger(__name__)
 _log.setLevel(logging.INFO)
 
 from .master_utils import MyLogger, AppChannelListener, SOEHandler
-from .master_utils import parsing_gvid_to_gvcls
+from .master_utils import parsing_gvid_to_gvcls, parsing_gv_to_mastercmdtype
 from .master_utils import collection_callback, command_callback, restart_callback
 import datetime
 
@@ -157,12 +157,11 @@ class MyMasterNew:
                                                    opendnp3.AnalogOutputFloat32,
                                                    opendnp3.AnalogOutputDouble64],
                                     index: int,
-                                    callback: Callable[[opendnp3.ICommandTaskResult], None] = None,
+                                    callback: Callable[[opendnp3.ICommandTaskResult], None] = command_callback,
                                     config: opendnp3.TaskConfig = opendnp3.TaskConfig().Default()):
         """
             Direct operate a single command
             Note: send_direct_operate_command will evoke outstation side def process_point_value once as side effect
-
         :param command: command to operate
         :param index: index of the command
         :param callback: callback that will be invoked upon completion or failure.
@@ -545,6 +544,38 @@ class MyMasterNew:
             return val_w_meta.get(gv_cls).get(index)
         else:
             return None
+
+    def send_direct_point_command(self, group: int, variation: int, index: int, val_to_set: DbPointVal,
+                                  call_back: Callable[[opendnp3.ICommandTaskResult], None] = None,
+                                  config: opendnp3.TaskConfig = None
+                                  ) -> None:
+        """
+        Wrapper on send_direct_operate_command with flatten argumensts
+
+
+        """
+        # init to default
+        if call_back is None:
+            call_back = command_callback  # master_utils.command_callback
+        if config is None:
+            config = opendnp3.TaskConfig().Default()
+
+        master_cmd: opendnp3.AnalogOutputDouble64 = parsing_gv_to_mastercmdtype(group=group,
+                                                                                variation=variation,
+                                                                                val_to_set=val_to_set)
+        self.send_direct_operate_command(command=master_cmd,
+                                         index=index,
+                                         callback=call_back,
+                                         config=config)
+
+    def send_select_and_operate_point_command(self, group: int, variation: int, index: int, val_to_set: DbPointVal,
+                                  call_back: Callable[[opendnp3.ICommandTaskResult], None] = None,
+                                  config: opendnp3.TaskConfig = None
+                                  ) -> None:
+        """
+        TODO: mimic send_direct_point_command
+        """
+        pass
 
     def start(self):
         _log.debug('Enabling the master.')

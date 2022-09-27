@@ -9,6 +9,8 @@ from pydnp3.opendnp3 import GroupVariation, GroupVariationID
 
 from typing import Callable, Union, Dict, Tuple, List, Optional, Type, TypeVar
 
+from .master_utils import MasterCmdType
+
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
 
@@ -20,13 +22,14 @@ _log.setLevel(logging.DEBUG)
 # alias
 OutstationCmdType = Union[opendnp3.Analog, opendnp3.Binary, opendnp3.AnalogOutputStatus,
                           opendnp3.BinaryOutputStatus]  # based on asiodnp3.UpdateBuilder.Update(**args)
-MasterCmdType = Union[opendnp3.AnalogOutputDouble64,
-                      opendnp3.AnalogOutputFloat32,
-                      opendnp3.AnalogOutputInt32,
-                      opendnp3.AnalogOutputInt16,
-                      opendnp3.ControlRelayOutputBlock]
+# MasterCmdType = Union[opendnp3.AnalogOutputDouble64,
+#                       opendnp3.AnalogOutputFloat32,
+#                       opendnp3.AnalogOutputInt32,
+#                       opendnp3.AnalogOutputInt16,
+#                       opendnp3.ControlRelayOutputBlock]
 MeasurementType = TypeVar("MeasurementType", bound=opendnp3.Measurement)  # inheritance, e.g., opendnp3.Analog,
 
+# TODO: combine outstation util with master_utils
 
 def master_to_outstation_command_parser(master_cmd: MasterCmdType) -> OutstationCmdType:
     """
