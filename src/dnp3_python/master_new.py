@@ -23,9 +23,9 @@ _log = logging.getLogger(__name__)
 # _log.setLevel(logging.ERROR)
 _log.setLevel(logging.INFO)
 
-from .master_utils import MyLogger, AppChannelListener, SOEHandler
-from .master_utils import parsing_gvid_to_gvcls, parsing_gv_to_mastercmdtype
-from .master_utils import collection_callback, command_callback, restart_callback
+from .station_utils import MyLogger, AppChannelListener, SOEHandler
+from .station_utils import parsing_gvid_to_gvcls, parsing_gv_to_mastercmdtype
+from .station_utils import collection_callback, command_callback, restart_callback
 import datetime
 
 # alias DbPointVal

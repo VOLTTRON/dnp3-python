@@ -6,8 +6,8 @@ import time
 
 from typing import Union, Type
 
-from .outstation_utils import master_to_outstation_command_parser
-from .outstation_utils import OutstationCmdType, MasterCmdType
+from .station_utils import master_to_outstation_command_parser
+from .station_utils import OutstationCmdType, MasterCmdType
 # from .outstation_utils import MeasurementType
 
 LOG_LEVELS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS

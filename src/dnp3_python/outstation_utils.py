@@ -9,7 +9,7 @@ from pydnp3.opendnp3 import GroupVariation, GroupVariationID
 
 from typing import Callable, Union, Dict, Tuple, List, Optional, Type, TypeVar
 
-from .master_utils import MasterCmdType
+from .station_utils import MasterCmdType
 
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
