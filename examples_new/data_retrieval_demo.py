@@ -47,6 +47,9 @@ def main():
             point_values_0 = [4.8, 7.8, 2.8]
             point_values_1 = [14.1, 17.1, 12.1]
             point_values_2 = [24.2, 27.2, 22.2]
+            point_values_0 = [val + random.random() for val in point_values_0]
+            point_values_1 = [val + random.random() for val in point_values_1]
+            point_values_2 = [val + random.random() for val in point_values_2]
             for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
                 p_val = random.choice(pts)
                 print(f"====== Outstation update index {i} with {p_val}")
