@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pydnp3"
+name = "pydnp3-legacy"
 version = "0.1.0"
 description = ""
 authors = ["PNNL"]

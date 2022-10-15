@@ -7,6 +7,8 @@ import platform
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
+
+from setuptools import find_packages
 __version__ = '0.1.0'
 
 
@@ -60,6 +62,7 @@ class CMakeBuild(build_ext):
         if not "<string>" in open(os.path.join(setup_path, 'deps', 'dnp3', 'cpp', 'libs', 'include', 'asiodnp3', 'IMasterOperations.h')).read():
             dnp3_path = os.path.join(setup_path, 'deps', 'dnp3')
             patch_path = os.path.join(setup_path, 'imasteroperations.patch')
+            # dnp3_python_path = os.path.join(setup_path, 'src', 'dnp3_python')
 
             subprocess.check_call(['git', 'apply', patch_path], cwd=dnp3_path)
 
@@ -67,15 +70,22 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
 setup(
-    name='pydnp3',
+    name='pydnp3-legacy',
     version=__version__,
     author='Anh Nguyen',
     author_email='anh@kisensum.com',
     url='http://github.com/Kisensum/pydnp3',
     description='pydnp3 -- python binding for opendnp3',
-    long_description='',
+    long_description='long description',
     install_requires=['pybind11>=2.2'],
     ext_modules=[CMakeExtension('pydnp3')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
+
+    # packages=find_packages(
+    #     where='src',
+    #     include=['dnp3_python'],  # alternatively: `exclude=['additional*']`
+    # ),
+    package_dir={"": "src"},
+    py_modules=["pydnp3", "pydnp3.dnp3_python", "dnp3_python"],
 )

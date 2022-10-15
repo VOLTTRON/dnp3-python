@@ -5,9 +5,9 @@ import sys
 from datetime import datetime
 from pydnp3 import opendnp3
 
-from dnp3_python.master_new import MyMasterNew
+from src.dnp3_python.master_new import MyMasterNew
 
-from dnp3_python.outstation_new import MyOutStationNew
+# from ..dnp3_python.outstation_new import MyOutStationNew
 
 import datetime
 from time import sleep
@@ -16,18 +16,18 @@ stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
 
 _log = logging.getLogger(__name__)
-# _log = logging.getLogger("data_retrieval_demo")
+_log = logging.getLogger("data_retrieval_demo")
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 
+# logging.basicConfig(filename='demo.log', level=logging.DEBUG)
 
 def main():
     master_application = MyMasterNew()
     master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
-    outstation_application = MyOutStationNew()
-    outstation_application.start()
-    _log.debug('Initialization complete. OutStation in command loop.')
+    # outstation_application = MyOutStationNew()
+    # _log.debug('Initialization complete. OutStation in command loop.')
 
     count = 0
     while count < 10:
@@ -42,33 +42,27 @@ def main():
         # index 1: [14.0, 17.0, 12.0]
         # index 1: [24.0, 27.0, 22.0]
 
-        # outstation update point value (slower than master station query)
-        if count % 3 == 1:
-            point_values_0 = [4.8, 7.8, 2.8]
-            point_values_1 = [14.1, 17.1, 12.1]
-            point_values_2 = [24.2, 27.2, 22.2]
-            point_values_0 = [val + random.random() for val in point_values_0]
-            point_values_1 = [val + random.random() for val in point_values_1]
-            point_values_2 = [val + random.random() for val in point_values_2]
-            for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
-                p_val = random.choice(pts)
-                print(f"====== Outstation update index {i} with {p_val}")
-                outstation_application.apply_update(opendnp3.Analog(value=float(p_val),
-                                                                    flags=opendnp3.Flags(24),
-                                                                    time=opendnp3.DNPTime(3094)), i)
-                # outstation_application.apply_update(opendnp3.AnalogIn(value=float(p_val),
-                #                                                     flags=opendnp3.Flags(24),
-                #                                                     time=opendnp3.DNPTime(3094)), i)
+        # # outstation update point value (slower than master station query)
+        # if count % 3 == 1:
+        #     point_values_0 = [4.8, 7.8, 2.8]
+        #     point_values_1 = [14.1, 17.1, 12.1]
+        #     point_values_2 = [24.2, 27.2, 22.2]
+        #     for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
+        #         p_val = random.choice(pts)
+        #         print(f"====== Outstation update index {i} with {p_val}")
+        #         outstation_application.apply_update(opendnp3.Analog(value=float(p_val),
+        #                                                             flags=opendnp3.Flags(24),
+        #                                                             time=opendnp3.DNPTime(3094)), i)
 
-        # update binaryInput value as well
-        if count % 3 == 1:
-            point_values_0 = [True, False]
-            point_values_1 = [True, False]
-            point_values_2 = [True, False]
-            for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
-                p_val = random.choice(pts)
-                print(f"====== Outstation update index {i} with {p_val}")
-                outstation_application.apply_update(opendnp3.Binary(True), i)
+        # # update binaryInput value as well
+        # if count % 3 == 1:
+        #     point_values_0 = [True, False]
+        #     point_values_1 = [True, False]
+        #     point_values_2 = [True, False]
+        #     for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
+        #         p_val = random.choice(pts)
+        #         print(f"====== Outstation update index {i} with {p_val}")
+        #         outstation_application.apply_update(opendnp3.Binary(True), i)
 
         # master station retrieve outstation point values
 
@@ -112,12 +106,6 @@ def main():
         result = master_application.get_db_by_group_variation(group=30, variation=6)
         print(f"===important log: case6 get_db_by_group_variation ==== {count}", datetime.datetime.now(),
               result)
-        result = master_application.get_db_by_group_variation(group=1, variation=2)
-        print(f"===important log: case6b get_db_by_group_variation ==== {count}", datetime.datetime.now(),
-              result)
-        result = master_application.get_db_by_group_variation(group=30, variation=1)
-        print(f"===important log: case6c get_db_by_group_variation ==== {count}", datetime.datetime.now(),
-              result)
 
         # use case 7: retrieve point values specified by single GroupVariationIDs and index.
         # demo float AnalogInput,
@@ -127,7 +115,7 @@ def main():
         result = master_application.get_db_by_group_variation_index(group=30, variation=6, index=0)
         print(f"===important log: case7 get_db_by_group_variation_index ==== {count}", datetime.datetime.now(),
               result)
-        result = master_application.get_val_by_group_variation_index(group=30, variation=6, index=1)
+        result = master_application.get_val_by_group_variation_index(group=30, variation=6, index=0)
         print(f"===important log: case7b get_db_by_group_variation_index ==== {count}", datetime.datetime.now(),
               result)
         result = master_application.get_val_by_group_variation_index(group=40, variation=4, index=0)
@@ -136,7 +124,7 @@ def main():
 
     _log.debug('Exiting.')
     master_application.shutdown()
-    outstation_application.shutdown()
+    # outstation_application.shutdown()
 
 
 if __name__ == '__main__':
