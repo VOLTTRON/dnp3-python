@@ -5,14 +5,16 @@ import sys
 from datetime import datetime
 from pydnp3 import opendnp3
 # from master import command_callback
-from src.dnp3_python.station_utils import command_callback
+from pydnp3.dnp3station.station_utils import command_callback
 
 # from master_cmd import MasterCmd
 # from outstation_cmd import OutstationCmd
 
-from src.dnp3_python.master_new import MyMasterNew
+# from src.dnp3_python.master_new import MyMasterNew
+from pydnp3.dnp3station.master_new import MyMasterNew
 
-from src.dnp3_python.outstation_new import MyOutStationNew
+# from src.dnp3_python.outstation_new import MyOutStationNew
+from pydnp3.dnp3station.outstation_new import MyOutStationNew
 # from ..dnp3_python.station_utils import SOEHandler
 
 # import visitors

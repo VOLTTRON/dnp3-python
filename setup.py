@@ -8,7 +8,7 @@ from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
-from setuptools import find_packages
+from setuptools import find_packages, find_namespace_packages
 __version__ = '0.1.0'
 
 
@@ -82,10 +82,13 @@ setup(
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 
+    packages=find_namespace_packages(
+        where='src/pydnp3',
+    ),
+    # or
     # packages=find_packages(
-    #     where='src',
-    #     include=['dnp3_python'],  # alternatively: `exclude=['additional*']`
-    # ),
-    package_dir={"": "src"},
-    py_modules=["pydnp3", "pydnp3.dnp3_python", "dnp3_python"],
+    #         where='src/pydnp3',
+    #         include=['dnp3station',]
+    #     ),
+    package_dir={"": "src/pydnp3"},
 )

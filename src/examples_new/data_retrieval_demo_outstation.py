@@ -14,7 +14,8 @@ from pydnp3 import opendnp3, openpal
 # from master_new import MasterCmdNew
 # from ..dnp3_python.master_new import MyMasterNew, MyLogger, AppChannelListener
 # from outstation_cmd import OutstationCmd
-from src.dnp3_python.outstation_new import MyOutStationNew
+# from src.dnp3_python.outstation_new import MyOutStationNew
+from pydnp3.dnp3station.outstation_new import MyOutStationNew
 # from dnp3_python import visitors
 
 
