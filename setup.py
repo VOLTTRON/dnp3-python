@@ -9,7 +9,7 @@ from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
 from setuptools import find_packages, find_namespace_packages
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 class CMakeExtension(Extension):
@@ -77,18 +77,33 @@ setup(
     url='http://github.com/Kisensum/pydnp3',
     description='pydnp3 -- python binding for opendnp3',
     long_description='long description',
-    install_requires=['pybind11>=2.2'],
+    # install_requires=['pybind11>=2.2'],
     ext_modules=[CMakeExtension('pydnp3')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 
+    # packages=find_namespace_packages(
+    #     where='src/dnp3_python',
+    # ),
+    # # or
+    # # packages=find_packages(
+    # #         where='src/dnp3_python',
+    # #         include=['dnp3station',]
+    # #     ),
+    # package_dir={"": "src/dnp3_python"},
     packages=find_namespace_packages(
-        where='src/pydnp3',
+        where='src',
+        include=['dnp3_python*',]  # to include sub-packages as well.
     ),
     # or
     # packages=find_packages(
-    #         where='src/pydnp3',
+    #         where='src/dnp3_python',
     #         include=['dnp3station',]
     #     ),
-    package_dir={"": "src/pydnp3"},
+    package_dir={"": "src"},
 )
+
+
+# from setuptools import setup
+#
+# setup()

@@ -6,7 +6,7 @@ from datetime import datetime
 from pydnp3 import opendnp3
 
 # from src.dnp3_python.master_new import MyMasterNew
-from pydnp3.dnp3station.master_new import MyMasterNew
+from dnp3_python.dnp3station.master_new import MyMasterNew
 
 # from ..dnp3_python.outstation_new import MyOutStationNew
 

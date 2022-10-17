@@ -15,8 +15,7 @@ with_extensions = True
 extensions = []
 if with_extensions:
     extensions = [
-        Extension("pydnp3", ["src/pydnp3.cpp"]),
-        # Extension("pendulum.parsing._iso8601", ["pendulum/parsing/_iso8601.c"]),
+        Extension("dnp3_python", ["src/dnp3_python.cpp"]),
     ]
 
 
@@ -36,7 +35,7 @@ class ExtBuilder(build_ext):
         except (DistutilsPlatformError, FileNotFoundError):
             print(
                 "  Unable to build the C extensions, "
-                "Pendulum will use the pure python code instead."
+                "Pydnp3 will use the pure python code instead."
             )
 
     def build_extension(self, ext):
@@ -45,7 +44,7 @@ class ExtBuilder(build_ext):
         except (CCompilerError, DistutilsExecError, DistutilsPlatformError, ValueError):
             print(
                 '  Unable to build the "{}" C extension, '
-                "Pendulum will use the pure python version of the extension.".format(
+                "Pydnp3 will use the pure python version of the extension.".format(
                     ext.name
                 )
             )

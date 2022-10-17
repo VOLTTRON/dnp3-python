@@ -8,14 +8,14 @@ from pydnp3 import opendnp3, openpal
 # from master import MyMaster, MyLogger, AppChannelListener, SOEHandler, MasterApplication
 # from ..dnp3_python.master import command_callback, restart_callback
 
-# from pydnp3 import asiodnp3 as asiodnp3
+# from dnp3_python import asiodnp3 as asiodnp3
 
 # from master_cmd import MasterCmd
 # from master_new import MasterCmdNew
 # from ..dnp3_python.master_new import MyMasterNew, MyLogger, AppChannelListener
 # from outstation_cmd import OutstationCmd
 # from src.dnp3_python.outstation_new import MyOutStationNew
-from pydnp3.dnp3station.outstation_new import MyOutStationNew
+from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 # from dnp3_python import visitors
 
 
