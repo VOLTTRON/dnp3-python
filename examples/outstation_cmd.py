@@ -121,22 +121,7 @@ class OutstationCmd(cmd.Cmd):
 def main():
     cmd_interface = OutstationCmd()
     _log.debug('Initialization complete. In command loop.')
-    # cmd_interface.startup()
-    # do_a
-    value_string = "5.1"
-    index = 0
-    cmd_interface.application.apply_update(opendnp3.Analog(float(value_string)), index)
-    flip_bool = True
-    while True:
-        from time import sleep
-        import random
-        print("============update=======, float(value_string): ", float(value_string), "index: ", index)
-        # cmd_interface.application.apply_update(opendnp3.Analog(float(value_string)), index)
-        # cmd_interface.application.apply_update(opendnp3.Analog(random.choice([5.1, 6.1, 19.2, 34.1])), index)
-        # print("============update=======, binary: ", flip_bool, "index: ", 0)
-        # flip_bool = not flip_bool
-        # cmd_interface.application.apply_update(opendnp3.Binary(True), 0)
-        sleep(5)
+    cmd_interface.startup()
     _log.debug('Exiting.')
 
 

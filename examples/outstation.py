@@ -6,7 +6,6 @@ from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
 LOG_LEVELS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
 LOCAL_IP = "0.0.0.0"
 PORT = 20000
-# PORT = 20001
 
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
@@ -14,7 +13,6 @@ stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname
 _log = logging.getLogger(__name__)
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
-_log.setLevel(logging.ERROR)  # TODO: encapsulate this
 
 
 class OutstationApplication(opendnp3.IOutstationApplication):
@@ -58,9 +56,7 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         threads_to_allocate = 1
         # self.log_handler = MyLogger()
         self.log_handler = asiodnp3.ConsoleLogger().Create()              # (or use this during regression testing)
-        # self.manager = asiodnp3.DNP3Manager(threads_to_allocate, self.log_handler)
-        print("====outstation self.log_handler = log_handler", self.log_handler)
-        self.manager = asiodnp3.DNP3Manager(4, self.log_handler)  # TODO: play with concurrencyHint
+        self.manager = asiodnp3.DNP3Manager(threads_to_allocate, self.log_handler)
 
         _log.debug('Creating the DNP3 channel, a TCP server.')
         self.retry_parameters = asiopal.ChannelRetry().Default()
@@ -89,9 +85,9 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         """Set up the OpenDNP3 configuration."""
         stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
         stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
-        stack_config.outstation.params.allowUnsolicited = True  # TODO: create interface for this
-        stack_config.link.LocalAddr = 1  # meaning for outstation, use 1 to follow simulator's default
-        stack_config.link.RemoteAddr = 2  # meaning for master station, use 2 to follow simulator's default
+        stack_config.outstation.params.allowUnsolicited = True
+        stack_config.link.LocalAddr = 10
+        stack_config.link.RemoteAddr = 1
         stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
         return stack_config
 
@@ -100,40 +96,21 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         """
             Configure the Outstation's database of input point definitions.
 
-            # Configure two Analog points (group/variation 30.1) at indexes 1 and 2.
-            Configure two Analog points (group/variation 30.1) at indexes 0, 1.
+            Configure two Analog points (group/variation 30.1) at indexes 1 and 2.
             Configure two Binary points (group/variation 1.2) at indexes 1 and 2.
         """
-        db_config.analog[0].clazz = opendnp3.PointClass.Class2
-        db_config.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var1
-        db_config.analog[0].evariation = opendnp3.EventAnalogVariation.Group32Var7
         db_config.analog[1].clazz = opendnp3.PointClass.Class2
         db_config.analog[1].svariation = opendnp3.StaticAnalogVariation.Group30Var1
         db_config.analog[1].evariation = opendnp3.EventAnalogVariation.Group32Var7
         db_config.analog[2].clazz = opendnp3.PointClass.Class2
         db_config.analog[2].svariation = opendnp3.StaticAnalogVariation.Group30Var1
         db_config.analog[2].evariation = opendnp3.EventAnalogVariation.Group32Var7
-
-        # AnalogInput
-        db_config.binary[0].clazz = opendnp3.PointClass.Class2
-        db_config.binary[0].svariation = opendnp3.StaticBinaryVariation.Group1Var2
-        db_config.binary[0].evariation = opendnp3.EventBinaryVariation.Group2Var2
         db_config.binary[1].clazz = opendnp3.PointClass.Class2
         db_config.binary[1].svariation = opendnp3.StaticBinaryVariation.Group1Var2
         db_config.binary[1].evariation = opendnp3.EventBinaryVariation.Group2Var2
         db_config.binary[2].clazz = opendnp3.PointClass.Class2
         db_config.binary[2].svariation = opendnp3.StaticBinaryVariation.Group1Var2
         db_config.binary[2].evariation = opendnp3.EventBinaryVariation.Group2Var2
-
-        # Kefei's wild guess for analog output config
-        db_config.aoStatus[0].clazz = opendnp3.PointClass.Class2
-        db_config.aoStatus[0].svariation = opendnp3.StaticAnalogOutputStatusVariation.Group40Var1
-        # db_config.aoStatus[0].evariation = opendnp3.StaticAnalogOutputStatusVariation.Group40Var1
-        db_config.boStatus[0].clazz = opendnp3.PointClass.Class2
-        db_config.boStatus[0].svariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
-        # db_config.boStatus[0].evariation = opendnp3.StaticBinaryOutputStatusVariation.Group10Var2
-
-
 
     def shutdown(self):
         """
@@ -219,25 +196,7 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         :param index: (integer) DNP3 index of the payload's data definition.
         :param op_type: An OperateType, or None if command_type == 'Select'.
         """
-        # print("======I am evoked, right?")
-        # print("command_type ", command_type)
-        # print("command ", command)
-        # print("command status ", command.status)
-        #
-        # print("command dir ", dir(command))
-        # # print("command var ", vars(command))
-        # # print("command rawCode ", command.rawCode) # TODO: this is working for binaryoutput 3 for ON, 4 for OFF
-        # print("command value ", command.value)  # TODO: this is working for analogoutput
-        # print("command __getattribute__ ", command.__getattribute__)
-        # print("op_type ", op_type)
         _log.debug('Processing received point value for index {}: {}'.format(index, command))
-
-        # TODO: need to update the XXXOutput points
-        builder = asiodnp3.UpdateBuilder()
-        # builder.Update(opendnp3.BinaryOutputStatus(True), index)  # TODO: half way there. this is how to update BinaryOutput
-        builder.Update(opendnp3.AnalogOutputStatus(int(command.value)), index)  # TODO: half way there. this is how to update AnalogOutput
-        update = builder.Build()
-        OutstationApplication.get_outstation().Apply(update)
 
     def apply_update(self, value, index):
         """
@@ -248,7 +207,6 @@ class OutstationApplication(opendnp3.IOutstationApplication):
         :param value: An instance of Analog, Binary, or another opendnp3 data value.
         :param index: (integer) Index of the data definition in the opendnp3 database.
         """
-        # print("=======value in apply_update", value)
         _log.debug('Recording {} measurement, index={}, value={}'.format(type(value).__name__, index, value.value))
         builder = asiodnp3.UpdateBuilder()
         builder.Update(value, index)
@@ -279,8 +237,6 @@ class OutstationCommandHandler(opendnp3.ICommandHandler):
         :param index: int
         :return: CommandStatus
         """
-        # print("===========command, ", command)
-        # print("===========index, ", index)
         OutstationApplication.process_point_value('Select', command, index, None)
         return opendnp3.CommandStatus.SUCCESS
 
@@ -294,9 +250,6 @@ class OutstationCommandHandler(opendnp3.ICommandHandler):
         :param op_type: OperateType
         :return: CommandStatus
         """
-        # print("Operate===========command, ", command)
-        # print("Operate===========index, ", index)
-        # print("Operate===========op_type, ", op_type)
         OutstationApplication.process_point_value('Operate', command, index, op_type)
         return opendnp3.CommandStatus.SUCCESS
 
