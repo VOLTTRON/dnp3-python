@@ -7,19 +7,6 @@ Note:  This is a redesign of [pydnp3](https://github.com/ChargePoint/pydnp3) and
 
 **Supported Platforms:** Linux
 
-## Dependencies
-To build the library from source, you must have:
-
-* A toolchain with a C++14 compiler
-* CMake >= 2.8.12 (https://cmake.org/download/)
-
-This repository includes two repositories as submodules (under `deps/`):
-
-* dnp3 (https://github.com/automatak/dnp3)
-* pybind11 (https://github.com/Kisensum/pybind11) - This is a fork containing a minor patch
-required to compile some of the pydnp3 wrapper code. It will be replaced with pybind11 proper
-when the issue is resolved.
-
 ## Install
 Support Python >= 3.8, using pip
 ```
@@ -59,8 +46,22 @@ ms(1666217819745) INFO    server - Accepted connection from: 127.0.0.1
 
 ## For Developers
 
-pydnp3 is a thin wrapper around most all of the opendnp3 classes. Documentation for the opendnp3
+pydnp3 is a thin wrapper around opendnp3 classes. Documentation for the opendnp3
 classes is available at [automatak](https://www.automatak.com/opendnp3/#documentation).
 
-Please find more info in the /docs folder about packaging process, e.g., building from the C++ source code, packaging native Python code with C++ binding code, etc.
+#### Dependencies
+To build the library from source, you must have:
+
+* A toolchain with a C++14 compiler
+* CMake >= 2.8.12 (https://cmake.org/download/)
+
+This repository includes two repositories as submodules (under `deps/`):
+
+* dnp3 (https://github.com/automatak/dnp3)
+* pybind11 (https://github.com/Kisensum/pybind11) - This is a fork containing a minor patch
+required to compile some of the pydnp3 wrapper code. It will be replaced with pybind11 proper
+when the issue is resolved.
+
+Please find more info in the /docs folder about packaging process, e.g., building from the C++ source code, 
+packaging native Python code with C++ binding code, etc.
 
