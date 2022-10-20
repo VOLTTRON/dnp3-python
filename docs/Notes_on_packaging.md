@@ -51,13 +51,8 @@
     ├── asiopal
     │ 	...
     ├── dnp3demo
-    │   ├── control_workflow_demo.py
-    │   ├── data_retrieval_demo_master.py
-    │   ├── data_retrieval_demo_outstation.py
     │   ├── data_retrieval_demo.py
-    │   ├── __init__.py
-    │   ├── __main__.py
-    │   └── __pycache__
+    │   ...
     ├── dnp3_python
     │   ├── dnp3station
     │   │   ├── __init__.py
