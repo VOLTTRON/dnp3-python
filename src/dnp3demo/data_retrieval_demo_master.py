@@ -6,8 +6,8 @@ from datetime import datetime
 from pydnp3 import opendnp3
 
 # from src.dnp3_python.master_new import MyMasterNew
-from dnp3_python.dnp3station.master_new import MyMasterNew
-
+# from dnp3_python.dnp3station.master_new import MyMasterNew
+from src.dnp3_python.dnp3station.master_new import MyMasterNew
 # from ..dnp3_python.outstation_new import MyOutStationNew
 
 import datetime
@@ -31,8 +31,8 @@ def main():
     # _log.debug('Initialization complete. OutStation in command loop.')
 
     count = 0
-    while count < 10:
-        sleep(1)  # Note: hard-coded, master station query every 1 sec.
+    while count < 50:
+        sleep(3)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
         print(datetime.datetime.now(), "============count ", count, )

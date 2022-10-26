@@ -7,9 +7,12 @@ from pydnp3 import opendnp3
 
 
 # from src.dnp3_python.master_new import MyMasterNew
-from dnp3_python.dnp3station.master_new import MyMasterNew
+# from dnp3_python.dnp3station.master_new import MyMasterNew
 # from src.dnp3_python.outstation_new import MyOutStationNew
-from dnp3_python.dnp3station.outstation_new import MyOutStationNew
+# from dnp3_python.dnp3station.outstation_new import MyOutStationNew
+
+from src.dnp3_python.dnp3station.master_new import MyMasterNew
+from src.dnp3_python.dnp3station.outstation_new import MyOutStationNew
 
 import datetime
 from time import sleep
@@ -24,12 +27,14 @@ _log.setLevel(logging.DEBUG)
 
 
 def main():
-    master_application = MyMasterNew()
-    master_application.start()
-    _log.debug('Initialization complete. Master Station in command loop.')
+
     outstation_application = MyOutStationNew()
     outstation_application.start()
     _log.debug('Initialization complete. OutStation in command loop.')
+
+    master_application = MyMasterNew()
+    master_application.start()
+    _log.debug('Initialization complete. Master Station in command loop.')
 
     count = 0
     while count < 10:

@@ -11,11 +11,15 @@ from dnp3_python.dnp3station.station_utils import command_callback
 # from outstation_cmd import OutstationCmd
 
 # from src.dnp3_python.master_new import MyMasterNew
-from dnp3_python.dnp3station.master_new import MyMasterNew
+# from dnp3_python.dnp3station.master_new import MyMasterNew
 
 # from src.dnp3_python.outstation_new import MyOutStationNew
-from dnp3_python.dnp3station.outstation_new import MyOutStationNew
+# from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 # from ..dnp3_python.station_utils import SOEHandler
+
+from src.dnp3_python.dnp3station.master_new import MyMasterNew
+from src.dnp3_python.dnp3station.outstation_new import MyOutStationNew
+
 
 # import visitors
 
