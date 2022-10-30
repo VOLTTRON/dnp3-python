@@ -73,6 +73,8 @@ class MyMasterNew:
                  stale_if_longer_than: float = 2,  # in seconds
 
                  stack_config=None,
+
+                 # manager = asiodnp3.DNP3Manager(2, asiodnp3.ConsoleLogger().Create())
                  *args, **kwargs):
         """
         TODO: docstring here
@@ -102,6 +104,7 @@ class MyMasterNew:
         # init DNP3Manager(manager)
         _log.debug('Creating a DNP3Manager.')
         self.manager = asiodnp3.DNP3Manager(concurrencyHint, self.log_handler)
+        # self.manager = manager
 
         # init TCPClient(channel)
         _log.debug('Creating the DNP3 channel, a TCP client.')
@@ -471,7 +474,8 @@ class MyMasterNew:
 
                 # Action: set polling attempt timestamp, set db value associated to gv_cls to None.
                 self.soe_handler.gv_last_poll_dict[gv_cls] = datetime.datetime.now()
-                self.soe_handler.gv_index_value_nested_dict[gv_cls] = None  # Note: redundant, but explicitly define again.
+                self.soe_handler.gv_index_value_nested_dict[
+                    gv_cls] = None  # Note: redundant, but explicitly define again.
 
         return {gv_cls: gv_db_val}
 
@@ -513,7 +517,7 @@ class MyMasterNew:
         """Retrieve point value based on group-variation id, e.g., GroupVariationID(30, 6), and index
 
          Return ret_val: DbStorage (return_meta=True, default), DbPointVal(return_meta=False)
-        
+
          EXAMPLE:
          >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
          >>> master_application.get_db_by_group_variation_index(group=6, variation=30, index=0)
@@ -569,9 +573,9 @@ class MyMasterNew:
                                          config=config)
 
     def send_select_and_operate_point_command(self, group: int, variation: int, index: int, val_to_set: DbPointVal,
-                                  call_back: Callable[[opendnp3.ICommandTaskResult], None] = None,
-                                  config: opendnp3.TaskConfig = None
-                                  ) -> None:
+                                              call_back: Callable[[opendnp3.ICommandTaskResult], None] = None,
+                                              config: opendnp3.TaskConfig = None
+                                              ) -> None:
         """
         TODO: mimic send_direct_point_command
         """
@@ -582,10 +586,31 @@ class MyMasterNew:
         self.master.Enable()
 
     def shutdown(self):
-        # print("=======before master del self.__dict", self.__dict__)
+        """
+        Execute an orderly shutdown of the Master.
+        The debug messages may be helpful if errors occur during shutdown.
+
+        Expected:
+            channel state change: SHUTDOWN
+            ms(1667103120775) INFO    manager - Exiting thread (0)
+
+        Note:
+            Note: Don't use `self.manager.Shutdown()`, otherwise
+            "Process finished with exit code 134 (interrupted by signal 6: SIGABRT)"
+
+            Use `del self.master` instead of `self.master.Shutdown()`, otherwise
+            Process hanging
+        """
+
         sleep_before_master_shutdown = 2
         _log.info(f"Master station shutting down in {sleep_before_master_shutdown} seconds...")
         time.sleep(sleep_before_master_shutdown)  # Note: hard-coded sleep to avoid hanging process
+        # del self.master
+        # self.master.Shutdown()
+        # self.channel.Shutdown()
+        #
+        # self.manager.Shutdown()
+
         del self.slow_scan
         del self.fast_scan
         del self.master
