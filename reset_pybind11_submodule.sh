@@ -1,3 +1,4 @@
+# Note: deprecated
 git rm --cached deps/pybind11
 rm -rf .git/modules/deps/pybind11
 rm -rf deps/pybind11
