@@ -238,8 +238,8 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         """
         time.sleep(2)  # Note: hard-coded sleep to avoid hanging process
         _outstation = self.get_outstation()
-        # _outstation.Shutdown()
-        del _outstation
+        _outstation.Shutdown()
+        # del _outstation
         self.channel.Shutdown()
 
         # self.manager.Shutdown()
@@ -304,6 +304,12 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # update = builder.Build()
         update = asiodnp3.UpdateBuilder().Update(measurement, index).Build()
         cls.get_outstation().Apply(update)
+
+    def __del__(self):
+        try:
+            self.shutdown()
+        except Exception:
+            pass
 
 
 class OutstationCommandHandler(opendnp3.ICommandHandler):

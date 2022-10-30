@@ -1,3 +1,4 @@
+# Note: deprecated
 git rm --cached deps/dnp3
 rm -rf .git/modules/deps/dnp3
 rm -rf deps/dnp3

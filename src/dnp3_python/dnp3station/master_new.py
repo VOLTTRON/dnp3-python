@@ -616,3 +616,15 @@ class MyMasterNew:
         del self.master
         del self.channel
         del self.manager
+
+        # del self.slow_scan
+        # del self.fast_scan
+        # self.master.Shutdown()
+        # self.channel.Shutdown()
+        # self.manager.Shutdown()
+
+    def __del__(self):
+        try:
+            self.shutdown()
+        except AttributeError:
+            pass
