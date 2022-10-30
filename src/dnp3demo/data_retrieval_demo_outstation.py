@@ -3,22 +3,8 @@ import logging
 import random
 import sys
 
-from datetime import datetime
 from pydnp3 import opendnp3, openpal
-# from master import MyMaster, MyLogger, AppChannelListener, SOEHandler, MasterApplication
-# from ..dnp3_python.master import command_callback, restart_callback
-
-# from dnp3_python import asiodnp3 as asiodnp3
-
-# from master_cmd import MasterCmd
-# from master_new import MasterCmdNew
-# from ..dnp3_python.master_new import MyMasterNew, MyLogger, AppChannelListener
-# from outstation_cmd import OutstationCmd
-# from src.dnp3_python.outstation_new import MyOutStationNew
-# from dnp3_python.dnp3station.outstation_new import MyOutStationNew
-# from dnp3_python import visitors
-from src.dnp3_python.dnp3station.outstation_new import MyOutStationNew
-
+from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 
 from time import sleep
 
@@ -48,7 +34,7 @@ def main():
     _log.debug('Initialization complete. OutStation in command loop.')
 
     count = 0
-    while count < 50:
+    while count < 20:
         sleep(5)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
@@ -86,13 +72,8 @@ def main():
                 outstation_application.apply_update(opendnp3.Binary(True), i)
 
     _log.debug('Exiting.')
-    # cmd_interface_outstation.do_quit("something")
-    # cmd_interface_master.do_quit("something")
-    # quit()
-    # quit()
-    # TODO: shutdown gracefully
+
     outstation_application.shutdown()
-    # del outstation_application
 
 
 if __name__ == '__main__':

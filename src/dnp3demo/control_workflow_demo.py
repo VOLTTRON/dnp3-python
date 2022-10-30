@@ -2,29 +2,12 @@ import logging
 import random
 import sys
 
-from datetime import datetime
 from pydnp3 import opendnp3
-# from master import command_callback
 from dnp3_python.dnp3station.station_utils import command_callback
-
-# from master_cmd import MasterCmd
-# from outstation_cmd import OutstationCmd
-
-# from src.dnp3_python.master_new import MyMasterNew
-# from dnp3_python.dnp3station.master_new import MyMasterNew
-
-# from src.dnp3_python.outstation_new import MyOutStationNew
-# from dnp3_python.dnp3station.outstation_new import MyOutStationNew
-# from ..dnp3_python.station_utils import SOEHandler
-
-from src.dnp3_python.dnp3station.master_new import MyMasterNew
-from src.dnp3_python.dnp3station.outstation_new import MyOutStationNew
-
-
-# import visitors
+from dnp3_python.dnp3station.master_new import MyMasterNew
+from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 
 from time import sleep
-
 import datetime
 
 stdout_stream = logging.StreamHandler(sys.stdout)
