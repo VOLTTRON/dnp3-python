@@ -582,12 +582,28 @@ class MyMasterNew:
         self.master.Enable()
 
     def shutdown(self):
-        # print("=======before master del self.__dict", self.__dict__)
+        """
+        Execute an orderly shutdown of the Master.
+        The debug messages may be helpful if errors occur during shutdown.
+
+        Expected:
+            channel state change: SHUTDOWN
+            ms(1667103120775) INFO    manager - Exiting thread (0)
+
+        Note:
+            Note: Don't use `self.manager.Shutdown()`, otherwise
+            "Process finished with exit code 134 (interrupted by signal 6: SIGABRT)"
+
+            Use `del self.master` instead of `self.master.Shutdown()`, otherwise
+            Process hanging
+        """
+
         sleep_before_master_shutdown = 2
         _log.info(f"Master station shutting down in {sleep_before_master_shutdown} seconds...")
         time.sleep(sleep_before_master_shutdown)  # Note: hard-coded sleep to avoid hanging process
-        del self.slow_scan
-        del self.fast_scan
+        # del self.master
         del self.master
-        del self.channel
-        del self.manager
+        # self.master.Shutdown()
+        self.channel.Shutdown()
+
+        # self.manager.Shutdown()
