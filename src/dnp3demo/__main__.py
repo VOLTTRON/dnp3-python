@@ -1,21 +1,54 @@
-from dnp3demo import data_retrieval_demo
+from dnp3demo import data_retrieval_demo, control_workflow_demo, \
+    data_retrieval_demo_master, data_retrieval_demo_outstation
+import argparse
 
 
 def main():
-    """Read the Real Python article feed"""
 
-    # If an article ID is given, then show the article
-    # if len(sys.argv) > 1:
-    #     article = feed.get_article(sys.argv[1])
-    #     viewer.show(article)
-    #
-    # # If no ID is given, then show a list of all articles
-    # else:
-    #     site = feed.get_site()
-    #     titles = feed.get_titles()
-    #     viewer.show_list(site, titles)
-    data_retrieval_demo.main()
+    # Initialize parser
+    parser = argparse.ArgumentParser(
+        prog="dnp3demo",
+        description="Basic dnp3 use case demo",
+        # epilog="Thanks for using %(prog)s! :)",
+    )
+
+    # Adding optional argument
+    parser.add_argument("-d", "--duration", action="store",
+                        help="Configure demo duration (in seconds.)",
+                        type=int,
+                        default=60,
+                        metavar="sec")
+
+    # use exclusive group, choose among scripts to run,
+    # by default run --demo-get-point
+
+    group = parser.add_mutually_exclusive_group(required=False)
+    group.description = "some description"
+    group.add_argument("-rm", "--run-master-station", action="store_true",
+                       help="Run a standalone master station.", )
+    group.add_argument("-ro", "--run-outstation", action="store_true",
+                       help="Run a standalone master station.")
+    group.add_argument("-dg", "--demo-get-point", action="store_true",
+                       help="Demo get point workflow.")
+    group.add_argument("-ds", "--demo-set-point", action="store_true",
+                       help="Demo set point workflow.")
+
+    # Read arguments from command line
+    args = parser.parse_args()
+
+    # choose among the following scripts to run
+    if args.demo_set_point:
+        control_workflow_demo.main()
+    elif args.run_master_station:
+        data_retrieval_demo_master.main(duration=args.duration)
+    elif args.run_outstation:
+        data_retrieval_demo_outstation.main(duration=args.duration)
+    else:  # run as default
+        data_retrieval_demo.main()
 
 
 if __name__ == "__main__":
     main()
+    print("============")
+    print("End of Demo.")
+    print("============")

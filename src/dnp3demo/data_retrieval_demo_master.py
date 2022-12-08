@@ -8,6 +8,8 @@ from dnp3_python.dnp3station.master_new import MyMasterNew
 
 import datetime
 from time import sleep
+import time
+
 
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
@@ -19,15 +21,20 @@ _log.setLevel(logging.DEBUG)
 
 # logging.basicConfig(filename='demo.log', level=logging.DEBUG)
 
-def main():
+
+def main(duration=300):
     master_application = MyMasterNew()
     master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
     # outstation_application = MyOutStationNew()
     # _log.debug('Initialization complete. OutStation in command loop.')
 
+    start = time.time()
+    end = time.time()
+
     count = 0
-    while count < 20:
+    while count < 1000 and (end - start) < duration:
+        end = time.time()
         sleep(3)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
