@@ -38,24 +38,30 @@ MasterCmdType = Union[opendnp3.AnalogOutputDouble64,
                       opendnp3.AnalogOutputInt16,
                       opendnp3.ControlRelayOutputBlock]
 
+OutstationCmdType = Union[opendnp3.Analog,
+                          opendnp3.AnalogOutputStatus,
+                          opendnp3.Binary,
+                          opendnp3.BinaryOutputStatus]
+
+MeasurementType = TypeVar("MeasurementType",
+                          bound=opendnp3.Measurement)  # inheritance, e.g., opendnp3.Analog,
 
 # TODO: add validating connection logic
 # TODO: add validating configuration logic
 #  (e.g., check if db at outstation side is configured correctly, i.e., OutstationStackConfig)
-class MyLogger(openpal.ILogHandler):
-    """
-        Override ILogHandler in this manner to implement application-specific logging behavior.
-    """
 
-    def __init__(self):
-        super(MyLogger, self).__init__()
 
-    def Log(self, entry):
-        flag = opendnp3.LogFlagToString(entry.filters.GetBitfield())
-        filters = entry.filters.GetBitfield()
-        location = entry.location.rsplit('/')[-1] if entry.location else ''
-        message = entry.message
-        _log.debug('LOG\t\t{:<10}\tfilters={:<5}\tlocation={:<25}\tentry={}'.format(flag, filters, location, message))
+class HandlerLogger:
+    def __int__(self, logger_name="HandlerLogger"):
+        self._log = logging.getLogger(logger_name)
+        self.config_logger()
+
+    def get_logger(self):
+        return self._log
+
+    def config_logger(self, log_level=logging.INFO):
+        self._log.addHandler(stdout_stream)
+        self._log.setLevel(log_level)
 
 
 class AppChannelListener(asiodnp3.IChannelListener):
@@ -77,14 +83,21 @@ class SOEHandler(opendnp3.ISOEHandler):
         This is an interface for SequenceOfEvents (SOE) callbacks from the Master stack to the application layer.
     """
 
-    # TODO: refactor to its own module
     def __init__(self, soehandler_log_level=logging.INFO, *args, **kwargs):
         super(SOEHandler, self).__init__()
+
+        # auxiliary database
         self._gv_index_value_nested_dict: Dict[GroupVariation, Optional[Dict[int, DbPointVal]]] = {}
         self._gv_ts_ind_val_dict: Dict[GroupVariation, Tuple[datetime.datetime, Optional[Dict[int, DbPointVal]]]] = {}
-        _log.setLevel(soehandler_log_level)  # TODO: refactor to its own module (right now thi si global)
-
         self._gv_last_poll_dict: Dict[GroupVariation, Optional[datetime.datetime]] = {}
+
+        # logging
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.config_logger(log_level=soehandler_log_level)
+
+    def config_logger(self, log_level=logging.INFO):
+        self.logger.addHandler(stdout_stream)
+        self.logger.setLevel(log_level)
 
     def Process(self, info,
                 values: ICollectionIndexedVal,
@@ -143,12 +156,15 @@ class SOEHandler(opendnp3.ISOEHandler):
         # visitor.index_and_value: List[Tuple[int, DbPointVal]]
         for index, value in visitor.index_and_value:
             log_string = 'SOEHandler.Process {0}\theaderIndex={1}\tdata_type={2}\tindex={3}\tvalue={4}'
-            _log.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
+            self.logger.debug(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
             # print(log_string.format(info.gv, info.headerIndex, type(values).__name__, index, value))
 
         info_gv: GroupVariation = info.gv
         visitor_ind_val: List[Tuple[int, DbPointVal]] = visitor.index_and_value
 
+        # _log.info("======== SOEHandler.Process")
+        # _log.info(f"info_gv {info_gv}")
+        # _log.info(f"visitor_ind_val {visitor_ind_val}")
         self._post_process(info_gv=info_gv, visitor_ind_val=visitor_ind_val)
 
     def _post_process(self, info_gv: GroupVariation, visitor_ind_val: List[Tuple[int, DbPointVal]]):
@@ -173,10 +189,10 @@ class SOEHandler(opendnp3.ISOEHandler):
         self._gv_last_poll_dict[info_gv] = datetime.datetime.now()
 
     def Start(self):
-        _log.debug('In SOEHandler.Start====')
+        self.logger.debug('In SOEHandler.Start====')
 
     def End(self):
-        _log.debug('In SOEHandler.End')
+        self.logger.debug('In SOEHandler.End')
 
     @property
     def gv_index_value_nested_dict(self) -> Dict[GroupVariation, Optional[Dict[int, DbPointVal]]]:
@@ -243,26 +259,6 @@ def parsing_gvid_to_gvcls(gvid: GroupVariationID) -> GroupVariation:
         assert gv_cls is not None
     except ValueError as e:
         _log.warning(f"Group{group}Var{variation} is not valid opendnp3.GroupVariation")
-    # if group == 30 and variation == 6:
-    #     gv_cls = GroupVariation.Group30Var6
-    # elif group == 30 and variation == 1:
-    #     gv_cls = GroupVariation.Group30Var1
-    # elif group == 1 and variation == 2:
-    #     gv_cls = GroupVariation.Group1Var2
-    # elif group == 40 and variation == 4:
-    #     gv_cls = GroupVariation.Group40Var4
-    # elif group == 4 and variation == 1:
-    #     gv_cls = GroupVariation.Group40Var1
-    # elif group == 10 and variation == 2:
-    #     gv_cls = GroupVariation.Group10Var2
-    # elif group == 32 and variation == 4:
-    #     gv_cls = GroupVariation.Group32Var4
-    # elif group == 2 and variation == 2:
-    #     gv_cls = GroupVariation.Group2Var2
-    # elif group == 42 and variation == 8:
-    #     gv_cls = GroupVariation.Group42Var8
-    # elif group == 11 and variation == 2:
-    #     gv_cls = GroupVariation.Group11Var2
 
     return gv_cls
 
@@ -305,16 +301,14 @@ def parsing_gv_to_mastercmdtype(group: int, variation: int, val_to_set: DbPointV
 
 
 # alias
-OutstationCmdType = Union[opendnp3.Analog, opendnp3.Binary, opendnp3.AnalogOutputStatus,
-                          opendnp3.BinaryOutputStatus]  # based on asiodnp3.UpdateBuilder.Update(**args)
+# OutstationCmdType = Union[opendnp3.Analog, opendnp3.Binary, opendnp3.AnalogOutputStatus,
+#                           opendnp3.BinaryOutputStatus]  # based on asiodnp3.UpdateBuilder.Update(**args)
 # MasterCmdType = Union[opendnp3.AnalogOutputDouble64,
 #                       opendnp3.AnalogOutputFloat32,
 #                       opendnp3.AnalogOutputInt32,
 #                       opendnp3.AnalogOutputInt16,
 #                       opendnp3.ControlRelayOutputBlock]
-MeasurementType = TypeVar("MeasurementType", bound=opendnp3.Measurement)  # inheritance, e.g., opendnp3.Analog,
 
-# TODO: combine outstation util with master_utils
 
 
 def master_to_outstation_command_parser(master_cmd: MasterCmdType) -> OutstationCmdType:
@@ -340,3 +334,69 @@ def master_to_outstation_command_parser(master_cmd: MasterCmdType) -> Outstation
         return opendnp3.BinaryOutputStatus(value=bi_value)
     else:
         raise ValueError(f"master_cmd {master_cmd} with type {type(master_cmd)} is not a valid command.")
+
+
+class DBHandler:
+    """
+        Work as an auxiliary database for outstation (Mimic SOEHAndler for master-station)
+    """
+
+    def __init__(self, stack_config=asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10)),
+                 dbhandler_log_level=logging.INFO, *args, **kwargs):
+
+        self.stack_config = stack_config
+        self.db: dict = self.config_db(stack_config)
+
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.config_logger(log_level=dbhandler_log_level)
+
+    def config_logger(self, log_level=logging.INFO):
+        self.logger.addHandler(stdout_stream)
+        self.logger.setLevel(log_level)
+
+    @ staticmethod
+    def config_db(stack_config):
+        db = {}
+        for number, gv_name in zip([stack_config.dbConfig.sizes.numBinary,
+                                    stack_config.dbConfig.sizes.numBinaryOutputStatus,
+                                    stack_config.dbConfig.sizes.numAnalog,
+                                    stack_config.dbConfig.sizes.numAnalogOutputStatus],
+                                   ["Binary", "BinaryOutputStatus",
+                                    "Analog", "AnalogOutputStatus"]):
+            val_body = dict((n, None) for n in range(number))
+            db[gv_name] = val_body
+
+        return db
+
+    @property
+    def _db(self) -> dict:
+        return self._db
+
+    def process(self, command, index):
+        pass
+        # _log.info(f"command {command}")
+        # _log.info(f"index {index}")
+        update_body: dict = {index: command.value}
+        if self.db.get(command.__class__.__name__):
+            self.db[command.__class__.__name__].update(update_body)
+        else:
+            self.db[command.__class__.__name__] = update_body
+        # _log.info(f"========= self.db {self.db}")
+
+
+class MyLogger(openpal.ILogHandler):
+    """
+        Override ILogHandler in this manner to implement application-specific logging behavior.
+    """
+
+    def __init__(self):
+        super(MyLogger, self).__init__()
+
+    def Log(self, entry):
+        filters = entry.filters.GetBitfield()
+        location = entry.location.rsplit('/')[-1] if entry.location else ''
+        message = entry.message
+        _log.debug('Log\tfilters={}\tlocation={}\tentry={}'.format(filters, location, message))
+
+
+

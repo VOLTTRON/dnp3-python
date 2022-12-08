@@ -126,6 +126,9 @@ def main(duration=300):
         print(f"===important log: case7c get_db_by_group_variation_index ==== {count}", datetime.datetime.now(),
               result)
 
+        # print(f"====== master database: {master_application.soe_handler.gv_ts_ind_val_dict}")
+        print(f"====== master database: {master_application.soe_handler.gv_index_value_nested_dict}")
+
     _log.debug('Exiting.')
     master_application.shutdown()
     # outstation_application.shutdown()

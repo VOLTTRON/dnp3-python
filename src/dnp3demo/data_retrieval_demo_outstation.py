@@ -76,6 +76,7 @@ def main(duration=300):
                 p_val = random.choice(pts)
                 print(f"====== Outstation update index {i} with {p_val}")
                 outstation_application.apply_update(opendnp3.Binary(True), i)
+        print(f"====== outstation database: {outstation_application.db_handler.db}")
 
     _log.debug('Exiting.')
 

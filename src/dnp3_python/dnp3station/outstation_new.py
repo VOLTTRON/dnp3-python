@@ -9,6 +9,7 @@ from typing import Union, Type
 from .station_utils import master_to_outstation_command_parser
 from .station_utils import OutstationCmdType, MasterCmdType
 # from .outstation_utils import MeasurementType
+from .station_utils import DBHandler
 
 LOG_LEVELS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
 LOCAL_IP = "0.0.0.0"
@@ -21,7 +22,7 @@ stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname
 _log = logging.getLogger(__name__)
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
-# _log.setLevel(logging.ERROR)  # TODO: encapsulate this
+# _log.setLevel(logging.ERROR)
 _log.setLevel(logging.INFO)
 
 # alias
@@ -55,6 +56,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         """
 
     outstation = None
+    db_handler = None
 
     def __init__(self,
                  masterstation_ip_str: str = "0.0.0.0",
@@ -139,7 +141,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         #   ALL_COMMS = 130720
         #   NORMAL = 15
         #   NOTHING = 0
-        # TODO: add def set_channel_log_level, def set_master_log_level
+
         _log.debug('Configuring log level')
         self.channel_log_level: opendnp3.levels = channel_log_level
         self.outstation_log_level: opendnp3.levels = outstation_log_level
@@ -150,7 +152,20 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
 
         # Put the Outstation singleton in OutstationApplication so that it can be used to send updates to the Master.
-        MyOutStationNew.set_outstation(self.outstation)  # TODO: change MyOutStationNew to cls
+        MyOutStationNew.set_outstation(self.outstation)  # Note: this needs to be self.outstation (not cls.outstation)
+
+        self.db_handler = DBHandler(stack_config=self.stack_config)
+        MyOutStationNew.set_db_handler(self.db_handler)
+
+    @classmethod
+    def set_db_handler(cls, db_handler):
+        """
+            Set the singleton instance of IOutstation, as returned from the channel's AddOutstation call.
+
+            Making IOutstation available as a singleton allows other classes (e.g. the command-line UI)
+            to send commands to it -- see apply_update().
+        """
+        cls.db_handler = db_handler
 
 
     # @staticmethod
@@ -244,7 +259,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
 
         # self.manager.Shutdown()
 
-    @classmethod  # TODO: Justify the necessity to use class method
+    @classmethod  # Note: Using classmethod is required
     def get_outstation(cls):
         """Get the singleton instance of IOutstation."""
         return cls.outstation
@@ -304,6 +319,8 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # update = builder.Build()
         update = asiodnp3.UpdateBuilder().Update(measurement, index).Build()
         cls.get_outstation().Apply(update)
+
+        cls.db_handler.process(measurement, index)
 
     def __del__(self):
         try:
@@ -374,16 +391,16 @@ class AppChannelListener(asiodnp3.IChannelListener):
         _log.debug('In AppChannelListener.OnStateChange: state={}'.format(state))
 
 
-class MyLogger(openpal.ILogHandler):
-    """
-        Override ILogHandler in this manner to implement application-specific logging behavior.
-    """
-
-    def __init__(self):
-        super(MyLogger, self).__init__()
-
-    def Log(self, entry):
-        filters = entry.filters.GetBitfield()
-        location = entry.location.rsplit('/')[-1] if entry.location else ''
-        message = entry.message
-        _log.debug('Log\tfilters={}\tlocation={}\tentry={}'.format(filters, location, message))
+# class MyLogger(openpal.ILogHandler):
+#     """
+#         Override ILogHandler in this manner to implement application-specific logging behavior.
+#     """
+#
+#     def __init__(self):
+#         super(MyLogger, self).__init__()
+#
+#     def Log(self, entry):
+#         filters = entry.filters.GetBitfield()
+#         location = entry.location.rsplit('/')[-1] if entry.location else ''
+#         message = entry.message
+#         _log.debug('Log\tfilters={}\tlocation={}\tentry={}'.format(filters, location, message))

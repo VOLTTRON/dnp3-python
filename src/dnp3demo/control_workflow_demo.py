@@ -134,7 +134,7 @@ def main():
         # result = master_application.get_db_by_group_variation(group=30, variation=6)
         # print(f"===important log: case6b get_db_by_group_variation ==== {count}", datetime.datetime.now(),
         #       result)
-
+    # print("fffffffffffffffffffff", outstation_application.db_handler.db)
     _log.debug('Exiting.')
     master_application.shutdown()
     outstation_application.shutdown()
