@@ -2,12 +2,9 @@ import logging
 import random
 import sys
 
-from datetime import datetime
 from pydnp3 import opendnp3
 
-from dnp3_python.master_new import MyMasterNew
-
-from dnp3_python.outstation_new import MyOutStationNew
+from dnp3_python.dnp3station.master_new import MyMasterNew
 
 import datetime
 from time import sleep
@@ -30,8 +27,8 @@ def main():
     # _log.debug('Initialization complete. OutStation in command loop.')
 
     count = 0
-    while count < 10:
-        sleep(1)  # Note: hard-coded, master station query every 1 sec.
+    while count < 20:
+        sleep(3)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
         print(datetime.datetime.now(), "============count ", count, )

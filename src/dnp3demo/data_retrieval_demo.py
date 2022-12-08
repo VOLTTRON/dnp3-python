@@ -2,12 +2,10 @@ import logging
 import random
 import sys
 
-from datetime import datetime
 from pydnp3 import opendnp3
 
-from dnp3_python.master_new import MyMasterNew
-
-from dnp3_python.outstation_new import MyOutStationNew
+from dnp3_python.dnp3station.master_new import MyMasterNew
+from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 
 import datetime
 from time import sleep
@@ -22,15 +20,17 @@ _log.setLevel(logging.DEBUG)
 
 
 def main():
-    master_application = MyMasterNew()
-    master_application.start()
-    _log.debug('Initialization complete. Master Station in command loop.')
+
     outstation_application = MyOutStationNew()
     outstation_application.start()
     _log.debug('Initialization complete. OutStation in command loop.')
 
+    master_application = MyMasterNew()
+    master_application.start()
+    _log.debug('Initialization complete. Master Station in command loop.')
+
     count = 0
-    while count < 10:
+    while count < 3:
         sleep(1)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
@@ -47,6 +47,9 @@ def main():
             point_values_0 = [4.8, 7.8, 2.8]
             point_values_1 = [14.1, 17.1, 12.1]
             point_values_2 = [24.2, 27.2, 22.2]
+            point_values_0 = [val + random.random() for val in point_values_0]
+            point_values_1 = [val + random.random() for val in point_values_1]
+            point_values_2 = [val + random.random() for val in point_values_2]
             for i, pts in enumerate([point_values_0, point_values_1, point_values_2]):
                 p_val = random.choice(pts)
                 print(f"====== Outstation update index {i} with {p_val}")

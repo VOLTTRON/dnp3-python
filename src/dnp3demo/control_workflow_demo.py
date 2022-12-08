@@ -2,23 +2,12 @@ import logging
 import random
 import sys
 
-from datetime import datetime
 from pydnp3 import opendnp3
-# from master import command_callback
-from dnp3_python.station_utils import command_callback
-
-# from master_cmd import MasterCmd
-# from outstation_cmd import OutstationCmd
-
-from dnp3_python.master_new import MyMasterNew
-
-from dnp3_python.outstation_new import MyOutStationNew
-from dnp3_python.station_utils import SOEHandler
-
-# import visitors
+from dnp3_python.dnp3station.station_utils import command_callback
+from dnp3_python.dnp3station.master_new import MyMasterNew
+from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 
 from time import sleep
-
 import datetime
 
 stdout_stream = logging.StreamHandler(sys.stdout)
@@ -65,7 +54,7 @@ def main():
         # index 0: [4.0, 7.0, 2.0]
         # index 1: [14.0, 17.0, 12.0]
         # index 1: [24.0, 27.0, 22.0]
-        # note: for this version of pydnp3, it needs to inject float type point value, but will parse it into int.
+        # note: for this version of dnp3_python, it needs to inject float type point value, but will parse it into int.
 
         # master update point value (slower than master query)
         if count % 3 == 1:

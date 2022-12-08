@@ -3,4 +3,5 @@
 	url = https://github.com/Kisensum/pybind11.git
 [submodule "deps/dnp3"]
 	path = deps/dnp3
-	url = https://github.com/automatak/dnp3.git
+	# url = https://github.com/automatak/dnp3.git
+	url = https://github.com/kefeimo/opendnp3.git

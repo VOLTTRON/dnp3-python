@@ -225,26 +225,24 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
 
     def shutdown(self):
         """
-            Execute an orderly shutdown of the Outstation.
+        Execute an orderly shutdown of the Outstation.
+        The debug messages may be helpful if errors occur during shutdown.
 
-            The debug messages may be helpful if errors occur during shutdown.
+        Expected:
+            ms(1667102887814) INFO    server - Operation aborted.
+            ms(1667102887821) INFO    manager - Exiting thread (0)
+
+        Note:
+            Note: Don't use `self.manager.Shutdown()`, otherwise
+            Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
         """
-        # TODO: cannot shut down: see Outstation and master hang on shutdown #1 at
-        # https: // github.com / ChargePoint / pydnp3 / issues / 1
         time.sleep(2)  # Note: hard-coded sleep to avoid hanging process
         _outstation = self.get_outstation()
-        del _outstation
-        del self.channel
-        del self.log_handler
-        del self.outstation_application
-        del self.stack_config
-        del self.command_handler
-        del self.listener
-        del self.retry_parameters
-        # del self.manager
+        _outstation.Shutdown()
+        # del _outstation
+        self.channel.Shutdown()
 
-        self.manager.Shutdown()  # Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
-        # self.manager.__del__()  # Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
+        # self.manager.Shutdown()
 
     @classmethod  # TODO: Justify the necessity to use class method
     def get_outstation(cls):
@@ -306,6 +304,12 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # update = builder.Build()
         update = asiodnp3.UpdateBuilder().Update(measurement, index).Build()
         cls.get_outstation().Apply(update)
+
+    def __del__(self):
+        try:
+            self.shutdown()
+        except Exception:
+            pass
 
 
 class OutstationCommandHandler(opendnp3.ICommandHandler):
