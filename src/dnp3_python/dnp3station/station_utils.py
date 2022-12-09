@@ -310,7 +310,6 @@ def parsing_gv_to_mastercmdtype(group: int, variation: int, val_to_set: DbPointV
 #                       opendnp3.ControlRelayOutputBlock]
 
 
-
 def master_to_outstation_command_parser(master_cmd: MasterCmdType) -> OutstationCmdType:
     """
     Used to parse send command to update command, e.g., opendnp3.AnalogOutputDouble64 -> AnalogOutputStatus
@@ -397,6 +396,3 @@ class MyLogger(openpal.ILogHandler):
         location = entry.location.rsplit('/')[-1] if entry.location else ''
         message = entry.message
         _log.debug('Log\tfilters={}\tlocation={}\tentry={}'.format(filters, location, message))
-
-
-
