@@ -628,3 +628,15 @@ class MyMasterNew:
             self.shutdown()
         except AttributeError:
             pass
+
+    def send_scan_all_request(self, gv_ids: List[opendnp3.GroupVariationID] = None):
+        """send requests to retrieve all point values, if gv_ids not provided then use default """
+        config = opendnp3.TaskConfig().Default()
+        if gv_ids is None:
+            gv_ids = [GroupVariationID(group=30, variation=6),
+                      GroupVariationID(group=40, variation=4),
+                      GroupVariationID(group=1, variation=2),
+                      GroupVariationID(group=10, variation=2)]
+        for gv_id in gv_ids:
+            self.master.ScanAllObjects(gvId=gv_id,
+                                       config=config)

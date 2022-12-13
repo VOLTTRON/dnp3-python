@@ -222,8 +222,8 @@ class SOEHandler(opendnp3.ISOEHandler):
                                     size,
                                     size,
                                     size],
-                                   ["Binary", "BinaryOutputStatus",
-                                    "Analog", "AnalogOutputStatus"]):
+                                   ["Analog", "AnalogOutputStatus",
+                                    "Binary", "BinaryOutputStatus"]):
             val_body = dict((n, None) for n in range(number))
             db[gv_name] = val_body
 
@@ -405,8 +405,8 @@ class DBHandler:
                                     stack_config.dbConfig.sizes.numBinaryOutputStatus,
                                     stack_config.dbConfig.sizes.numAnalog,
                                     stack_config.dbConfig.sizes.numAnalogOutputStatus],
-                                   ["Binary", "BinaryOutputStatus",
-                                    "Analog", "AnalogOutputStatus"]):
+                                   ["Analog", "AnalogOutputStatus",
+                                    "Binary", "BinaryOutputStatus"]):
             val_body = dict((n, None) for n in range(number))
             db[gv_name] = val_body
 
