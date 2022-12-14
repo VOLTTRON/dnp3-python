@@ -1,5 +1,6 @@
 from dnp3demo import data_retrieval_demo, control_workflow_demo, \
-    data_retrieval_demo_master, data_retrieval_demo_outstation
+    data_retrieval_demo_master, data_retrieval_demo_outstation, \
+    control_workflow_demo_master
 import argparse
 
 
@@ -32,6 +33,8 @@ def main():
                        help="Demo get point workflow.")
     group.add_argument("-ds", "--demo-set-point", action="store_true",
                        help="Demo set point workflow.")
+    group.add_argument("-rim", "--run-interactive-master", action="store_true",
+                       help="Run an interactive master station. (For set point demo)")
 
     # Read arguments from command line
     args = parser.parse_args()
@@ -43,6 +46,8 @@ def main():
         data_retrieval_demo_master.main(duration=args.duration)
     elif args.run_outstation:
         data_retrieval_demo_outstation.main(duration=args.duration)
+    elif args.run_interactive_master:
+        control_workflow_demo_master.main()
     else:  # run as default
         data_retrieval_demo.main()
 
