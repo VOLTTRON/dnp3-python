@@ -1,16 +1,11 @@
 import logging
-import random
 import sys
 import argparse
 
 from pydnp3 import opendnp3
-from dnp3_python.dnp3station.station_utils import command_callback
-# from dnp3_python.dnp3station.master_new import MyMasterNew
 from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 
 from time import sleep
-import datetime
-import json
 
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
@@ -21,13 +16,21 @@ _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 
 
+def input_prompt(display_str=None) -> str:
+    if display_str is None:
+        display_str = """
+======== Your Input Here: ========
+"""
+    return input(display_str)
+
+
 def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
     # Adding optional argument
     parser.add_argument("-mip", "--master-ip", action="store", default="0.0.0.0", type=str,
-                        metavar="x.x.x.x")
+                        metavar="<IP>")
     parser.add_argument("-oip", "--outstation-ip", action="store", default="127.0.0.1", type=str,
-                        metavar="x.x.x.x")
+                        metavar="<IP>")
     parser.add_argument("-p", "--port", action="store", default=20000, type=int,
                         metavar="<PORT>")
     parser.add_argument("-mid", "--master-id", action="store", default=2, type=int,
@@ -39,17 +42,16 @@ def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 
 def print_menu():
-    welcome_str = """
-=================================================================
-MENU
+    welcome_str = """\
+========================= MENU ==================================
 <ai> - set analog-input point value
 <ao> - set analog-output point value
 <bi> - set binary-input point value
 <bo> - set binary-output point value
 <dd> - display database
 <dc> - display configuration
-=================================================================
-    """
+=================================================================\
+"""
     print(welcome_str)
 
 def main(parser=None, *args, **kwargs):
@@ -95,7 +97,7 @@ def main(parser=None, *args, **kwargs):
         # sleep(1)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
-        print(f"=========== Count {count}")
+        # print(f"=========== Count {count}")
 
         if outstation_application.is_connected:
             # print("Communication Config", master_application.get_config())
@@ -107,13 +109,13 @@ def main(parser=None, *args, **kwargs):
             sleep(2)
             continue
 
-        option = input()  # Note: one of ["ai", "ao", "bi", "bo",  "dd", "dc"]
+        option = input_prompt()  # Note: one of ["ai", "ao", "bi", "bo",  "dd", "dc"]
         while True:
             if option == "ai":
                 print("You chose <ai> - set analog-input point value")
                 print("Type in <float> and <index>. Separate with space, then hit ENTER.")
                 print("Type 'q', 'quit', 'exit' to main menu.")
-                input_str = input()
+                input_str = input_prompt()
                 if input_str in ["q", "quit", "exit"]:
                     break
                 try:
@@ -130,7 +132,7 @@ def main(parser=None, *args, **kwargs):
                 print("You chose <ao> - set analog-output point value")
                 print("Type in <float> and <index>. Separate with space, then hit ENTER.")
                 print("Type 'q', 'quit', 'exit' to main menu.")
-                input_str = input()
+                input_str = input_prompt()
                 if input_str in ["q", "quit", "exit"]:
                     break
                 try:
@@ -146,7 +148,7 @@ def main(parser=None, *args, **kwargs):
             elif option == "bi":
                 print("You chose <bi> - set binary-input point value")
                 print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER.")
-                input_str = input()
+                input_str = input_prompt()
                 if input_str in ["q", "quit", "exit"]:
                     break
                 try:
@@ -166,7 +168,7 @@ def main(parser=None, *args, **kwargs):
             elif option == "bo":
                 print("You chose <bo> - set binary-output point value")
                 print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER.")
-                input_str = input()
+                input_str = input_prompt()
                 if input_str in ["q", "quit", "exit"]:
                     break
                 try:
