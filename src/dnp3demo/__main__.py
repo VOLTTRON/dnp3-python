@@ -39,6 +39,10 @@ def main():
     # Read arguments from command line
     args = parser.parse_args()
 
+    # using a dict
+    # d_args = vars(args)
+    # print(f"d_args, {d_args}")
+
     # choose among the following scripts to run
     if args.demo_set_point:
         control_workflow_demo.main()

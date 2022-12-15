@@ -30,7 +30,7 @@ def main(duration=300):
     #                                  master_application=MasterApplication())
     # master_application = MyMasterNew()
     # _log.debug('Initialization complete. Master Station in command loop.')
-    outstation_application = MyOutStationNew()
+    outstation_application = MyOutStationNew(outstation_id_int=2, port=20001)
     outstation_application.start()
     _log.debug('Initialization complete. OutStation in command loop.')
 

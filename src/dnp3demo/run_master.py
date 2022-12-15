@@ -1,6 +1,7 @@
 import logging
 import random
 import sys
+import argparse
 
 from pydnp3 import opendnp3
 from dnp3_python.dnp3station.station_utils import command_callback
@@ -20,46 +21,61 @@ _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 
 
-def main():
-    # cmd_interface_master = MasterCmd()
+def arg_config() -> argparse.ArgumentParser:
+    # Initialize parser
+    parser = argparse.ArgumentParser(
+        prog="dnp3-master",
+        description="Run a dnp3 master",
+        # epilog="Thanks for using %(prog)s! :)",
+    )
+
+    # Adding optional argument
+    parser.add_argument("-mip", "--master-ip", action="store", default="0.0.0.0", type=str,
+                        metavar="x.x.x.x")
+    parser.add_argument("-oip", "--outstation-ip", action="store", default="127.0.0.1", type=str,
+                        metavar="x.x.x.x")
+    parser.add_argument("-p", "--port", action="store", default=20000, type=int,
+                        metavar="<PORT>")
+    parser.add_argument("-mid", "--master-id", action="store", default=1, type=int,
+                        metavar="<ID>")
+    parser.add_argument("-oid", "--outstation-id", action="store", default=2, type=int,
+                        metavar="<ID>")
+
+    # # Read arguments from command line
+    # args = parser.parse_args()
+
+    # choose among the following scripts to run
+    return parser
+
+
+def main(*args, **kwargs):
+    # Read arguments from command line
+    parser = arg_config()
+    args = parser.parse_args()
+
+    # or use dict
+    d_args = vars(args)
+    print(d_args)
+
     master_application = MyMasterNew(
-        port=20001,
-        outstation_id_int=2,
+        masterstation_ip_str=args.master_ip,
+        outstation_ip_str=args.outstation_ip,
+        port=args.port,
+        masterstation_id_int=args.master_id,
+        outstation_id_int=args.outstation_id,
 
         # channel_log_level=opendnp3.levels.ALL_COMMS,
         # master_log_level=opendnp3.levels.ALL_COMMS
         # soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
-                                     )
+    )
     master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
-    # cmd_interface_outstation = OutstationCmd()
-    # outstation_application = MyOutStationNew(
-    #     # channel_log_level=opendnp3.levels.ALL_COMMS,
-    #     # outstation_log_level=opendnp3.levels.ALL_COMMS
-    # )
-    # outstation_application.start()
-    # _log.debug('Initialization complete. OutStation in command loop.')
 
     sleep(2)
-    print("============")
-    # info = master_application.stack_config.__dir__()
-    # info = master_application.stack_config.master.__dir__()
-    # info = master_application.stack_config.link.__dir__()
-    # info = master_application.listener.__dir__()
-    # info = master_application.channel.__dir__()
-    # info = master_application.channel.GetStatistics().channel.__dir__()
-    #
-    # print(info)
-    # print(master_application.channel.GetStatistics().channel.numOpen)
-    # print(master_application.channel.GetStatistics().channel.numOpenFail)
-    # print(master_application.channel.GetStatistics().channel.numClose)
-
-
     # Note: if without sleep(2) there will be a glitch when first send_select_and_operate_command
     #  (i.e., all the values are zero, [(0, 0.0), (1, 0.0), (2, 0.0), (3, 0.0)]))
     #  since it would not update immediately
 
-    # cmd_interface.startup()
     count = 0
     while count < 1000:
         # sleep(1)  # Note: hard-coded, master station query every 1 sec.

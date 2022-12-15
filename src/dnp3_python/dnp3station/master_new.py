@@ -36,7 +36,6 @@ DbStorage = Dict[opendnp3.GroupVariation, Dict[
 
 class MyMasterNew:
     """
-        Interface for all master application callback info except for measurement values. (TODO: where is and how to get measurement values then?)
 
         DNP3 spec section 5.1.6.1:
             The Application Layer provides the following services for the DNP3 User Layer in a master:
@@ -143,8 +142,7 @@ class MyMasterNew:
         #   ALL_COMMS = 130720
         #   NORMAL = 15  # INFO, WARN
         #   NOTHING = 0
-        # TODO: Rewrite opendnp3.levels note: wild guess, 7: warning, 15 (opendnp3.levels.NORMAL): info
-        _log.debug('Configuring log level')  # TODO: provide more info. Right now this log is not very useful
+        # _log.debug('Configuring log level')
         self.channel_log_level: opendnp3.levels = channel_log_level
         self.master_log_level: opendnp3.levels = master_log_level
 
@@ -152,6 +150,48 @@ class MyMasterNew:
         self.master.SetLogFilters(openpal.LogFilters(self.master_log_level))
         # self.channel.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
         # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
+
+        # configuration info
+        self._comm_conifg = {
+            "masterstation_ip_str": masterstation_ip_str,
+            "outstation_ip_str": outstation_ip_str,
+            "port": port,
+            "masterstation_id_int": masterstation_id_int,
+            "outstation_id_int": outstation_id_int,
+        }
+
+    @property
+    def channel_statistic(self):
+        """statistics of channel connection actions
+        numOpen: number of times that (successfully) open a connection
+        numOpenFail: number of fail attempts to open a connection
+        numClose: number of such once-open-later-close connections
+
+        Note: when there is 1-to-1 mapping from channel to station, then
+        numOpen - numClose == 1 => SUCCESS
+        numOpen - numClose == 0 => FAIL
+        """
+        return {
+            "numOpen": self.channel.GetStatistics().channel.numOpen,
+            "numOpenFail": self.channel.GetStatistics().channel.numOpenFail,
+            "numClose": self.channel.GetStatistics().channel.numClose}
+
+    @property
+    def is_connected(self):
+        """
+        Note: when there is 1-to-1 mapping from channel to station, then
+        numOpen - numClose == 1 => SUCCESS
+        numOpen - numClose == 0 => FAIL
+        """
+        if self.channel_statistic.get("numOpen") - self.channel_statistic.get("numClose") == 1:
+            return True
+        else:
+            return False
+
+    def get_config(self):
+        """print out the configuration
+        example"""
+        return self._comm_conifg
 
     def send_direct_operate_command(self,
                                     command: Union[opendnp3.ControlRelayOutputBlock,
@@ -184,7 +224,7 @@ class MyMasterNew:
         self.master.DirectOperate(command_set, callback, config)
 
     def send_select_and_operate_command(self, command, index, callback=asiodnp3.PrintingCommandCallback.Get(),
-                                        config=opendnp3.TaskConfig().Default()):  # TODO: compare to send_direct_operate_command, what's the difference
+                                        config=opendnp3.TaskConfig().Default()):
         """
             Select and operate a single command
             Note: send_direct_operate_command will evoke outstation side def process_point_value TWICE as side effect
@@ -197,7 +237,7 @@ class MyMasterNew:
         self.master.SelectAndOperate(command, index, callback, config)
 
     def send_select_and_operate_command_set(self, command_set, callback=asiodnp3.PrintingCommandCallback.Get(),
-                                            config=opendnp3.TaskConfig().Default()):  # TODO: compare to send_direct_operate_command_set, what's the difference
+                                            config=opendnp3.TaskConfig().Default()):
         """
             Select and operate a set of commands
 
@@ -206,142 +246,6 @@ class MyMasterNew:
         :param config: optional configuration that controls normal callbacks and allows the user to be specified for SA
         """
         self.master.SelectAndOperate(command_set, callback, config)
-
-    # def retrieve_all_obj_by_gvid(self, gv_id: opendnp3.GroupVariationID,
-    #                              config=opendnp3.TaskConfig().Default()
-    #                              ) -> Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]:
-    #     """
-    #     Deprecated. (Use retrieve_val_by_gv instead)
-    #     Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
-    #
-    #     Common gvId: ref: dnp3 Namespace Reference: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html
-    #     TODO: rewrite opendnp3.GroupVariationID to add docstring
-    #     for static state
-    #         GroupVariationID(30, 6): Analog input - double-precision, floating-point with flag
-    #         GroupVariationID(30, 1): Analog input - 32-bit with flag
-    #         GroupVariationID(1, 2): Binary input - with flags
-    #
-    #         GroupVariationID(40, 4): Analog Output Status - Double-precision floating point with flags
-    #         GroupVariationID(40, 1): Analog Output Status - 32-bit with flags
-    #         GroupVariationID(10, 2): Binary Output - With flags
-    #     for event
-    #         GroupVariationID(32, 4): Analog Input Event - 16-bit with time
-    #         GroupVariationID(2, 2): Binary Input Event - With absolute time
-    #         GroupVariationID(42, 8): Analog Output Event - Double-preicions floating point with time
-    #         GroupVariationID(11, 2): Binary Output Event - With time
-    #
-    #     :param opendnp3.GroupVariationID gv_id: group-variance Id
-    #     :param opendnp3.TaskConfig config: Task configuration. Default: opendnp3.TaskConfig().Default()
-    #
-    #     :return: retrieved point values stored in a nested dict.
-    #     :rtype: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]
-    #
-    #     :example:
-    #     >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
-    #     >>> master_application.retrieve_all_obj_by_gvid(gv_id=opendnp3.GroupVariationID(30, 6))
-    #     GroupVariation.Group30Var6: {0: 4.8, 1: 12.1, 2: 24.2, 3: 0.0}}
-    #     """
-    #     # self.master.ScanRange(gvId=opendnp3.GroupVariationID(30, 1), start=0, stop=3,
-    #     #                 config=opendnp3.TaskConfig().Default())
-    #     # self.master.ScanRange(gvId=gvId, start=index_start, stop=index_stop,
-    #     #                       config=config)
-    #
-    #     # self.master.ScanAllObjects(gvId=gvid,
-    #     #                            config=config)
-    #     # gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gvid)
-    #     # db_val = {gv_cls: self.soe_handler.gv_index_value_nested_dict.get(gv_cls)}
-    #
-    #     # TODO: refactor hard-coded retry and sleep, allow config
-    #     # TODO: "prettify" the following while loop workflow. e.g., helper function + recurrent function
-    #     self.master.ScanAllObjects(gvId=gv_id,
-    #                                config=config)
-    #     gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
-    #     gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
-    #
-    #     # retry logic to improve performance
-    #     retry_max = self.num_polling_retry
-    #     n_retry = 0
-    #     sleep_delay = self.delay_polling_retry
-    #     while gv_db_val is None and n_retry < retry_max:
-    #         self.master.ScanAllObjects(gvId=gv_id,
-    #                                    config=config)
-    #         # gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
-    #         time.sleep(sleep_delay)
-    #         gv_db_val = self.soe_handler.gv_index_value_nested_dict.get(gv_cls)
-    #         n_retry += 1
-    #         # print("=======n_retry, gv_db_val, gv_cls", n_retry, gv_db_val, gv_cls)
-    #         # print("=======self.soe_handler", self.soe_handler)
-    #         # print("=======self.soe_handler.gv_index_value_nested_dict id", self.soe_handler.gv_index_value_nested_dict,
-    #         #       id(self.soe_handler.gv_index_value_nested_dict))
-    #
-    #         if n_retry >= retry_max:
-    #             _log.warning("==Retry numbers hit retry limit {}==".format(retry_max))
-    #
-    #     return {gv_cls: gv_db_val}
-
-    # def retrieve_all_obj_by_gvids(self,
-    #                               gv_ids: Optional[List[opendnp3.GroupVariationID]] = None,
-    #                               config=opendnp3.TaskConfig().Default()
-    #                               ) -> Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]:
-    #     """
-    #     Deprecated. (encorage the user to use retrieve_val_by_gv instead)
-    #
-    #     Retrieve point value (from an outstation databse) based on gvId (Group Variation ID).
-    #
-    #     Common gvId: ref: dnp3 Namespace Reference: https://docs.stepfunc.io/dnp3/0.9.0/dotnet/namespacednp3.html
-    #     TODO: rewrite opendnp3.GroupVariationID to add docstring
-    #     for static state
-    #         GroupVariationID(30, 6): Analog input - double-precision, floating-point with flag
-    #         GroupVariationID(30, 1): Analog input - 32-bit with flag
-    #         GroupVariationID(1, 2): Binary input - with flags
-    #
-    #         GroupVariationID(40, 4): Analog Output Status - Double-precision floating point with flags
-    #         GroupVariationID(40, 1): Analog Output Status - 32-bit with flags
-    #         GroupVariationID(10, 2): Binary Output - With flags
-    #     for event
-    #         GroupVariationID(32, 4): Analog Input Event - 16-bit with time
-    #         GroupVariationID(2, 2): Binary Input Event - With absolute time
-    #         GroupVariationID(42, 8): Analog Output Event - Double-preicions floating point with time
-    #         GroupVariationID(11, 2): Binary Output Event - With time
-    #
-    #     :param opendnp3.GroupVariationID gv_ids: list of group-variance Id
-    #     :param opendnp3.TaskConfig config: Task configuration. Default: opendnp3.TaskConfig().Default()
-    #
-    #     :return: retrieved point values stored in a nested dict.
-    #     :rtype: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]]
-    #
-    #     :example:
-    #     >>> # prerequisite: outstation db properly configured and updated, master_application properly initialized
-    #     >>> master_application.retrieve_all_obj_by_gvids()  # using default
-    #     GroupVariation.Group30Var6: {0: 4.8, 1: 12.1, 2: 24.2, 3: 0.0}}
-    #     """
-    #
-    #     gv_ids: Optional[List[opendnp3.GroupVariationID]]
-    #     if gv_ids is None:  # using default
-    #         # GroupVariationID(30, 6): Analog input - double-precision, floating-point with flag
-    #         # GroupVariationID(1, 2): Binary input - with flags
-    #         # GroupVariationID(40, 4): Analog Output Status - Double-precision floating point with flags
-    #         # GroupVariationID(10, 2): Binary Output - With flags
-    #
-    #         # GroupVariationID(32, 4): Analog Input Event - 16-bit with time
-    #         # GroupVariationID(2, 2): Binary Input Event - With absolute time
-    #         # GroupVariationID(42, 8): Analog Output Event - Double-preicions floating point with time
-    #         # GroupVariationID(11, 2): Binary Output Event - With time
-    #         gv_ids = [GroupVariationID(30, 6),
-    #                   GroupVariationID(1, 2),
-    #                   GroupVariationID(40, 4),
-    #                   GroupVariationID(10, 2),
-    #                   # GroupVariationID(32, 4),
-    #                   # GroupVariationID(2, 2),
-    #                   # GroupVariationID(42, 8),
-    #                   # GroupVariationID(11, 2),
-    #                   ]
-    #     filtered_db: Dict[opendnp3.GroupVariation, Dict[int, DbPointVal]] = {}
-    #     for gv_id in gv_ids:
-    #         self.retrieve_all_obj_by_gvid(gv_id=gv_id, config=config)
-    #         gv_cls: opendnp3.GroupVariation = parsing_gvid_to_gvcls(gv_id)
-    #         filtered_db.update({gv_cls: self.soe_handler.gv_index_value_nested_dict.get(gv_cls)})
-    #     return filtered_db
 
     def _retrieve_all_obj_by_gvids_w_ts(self,
                                         gv_ids: Optional[List[opendnp3.GroupVariationID]] = None,
