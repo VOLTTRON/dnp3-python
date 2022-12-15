@@ -21,13 +21,7 @@ _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 
 
-def arg_config() -> argparse.ArgumentParser:
-    # Initialize parser
-    parser = argparse.ArgumentParser(
-        prog="dnp3-master",
-        description="Run a dnp3 master",
-        # epilog="Thanks for using %(prog)s! :)",
-    )
+def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
     # Adding optional argument
     parser.add_argument("-mip", "--master-ip", action="store", default="0.0.0.0", type=str,
@@ -41,21 +35,26 @@ def arg_config() -> argparse.ArgumentParser:
     parser.add_argument("-oid", "--outstation-id", action="store", default=2, type=int,
                         metavar="<ID>")
 
-    # # Read arguments from command line
-    # args = parser.parse_args()
-
-    # choose among the following scripts to run
     return parser
 
 
-def main(*args, **kwargs):
+def main(parser=None, *args, **kwargs):
+
+    if parser is None:
+        # Initialize parser
+        parser = argparse.ArgumentParser(
+            prog="dnp3-master",
+            description="Run a dnp3 master",
+            # epilog="Thanks for using %(prog)s! :)",
+        )
+        parser = setup_args(parser)
+
     # Read arguments from command line
-    parser = arg_config()
     args = parser.parse_args()
 
-    # or use dict
+    # dict to store args.Namespace
     d_args = vars(args)
-    print(d_args)
+    print(__name__, d_args)
 
     master_application = MyMasterNew(
         masterstation_ip_str=args.master_ip,
