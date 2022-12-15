@@ -95,6 +95,9 @@ class SOEHandler(opendnp3.ISOEHandler):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.config_logger(log_level=soehandler_log_level)
 
+        # db
+        self._db = self.init_db()
+
     def config_logger(self, log_level=logging.INFO):
         self.logger.addHandler(stdout_stream)
         self.logger.setLevel(log_level)
@@ -205,6 +208,48 @@ class SOEHandler(opendnp3.ISOEHandler):
     @property
     def gv_last_poll_dict(self) -> Dict[GroupVariation, Optional[datetime.datetime]]:
         return self._gv_last_poll_dict
+
+    @property
+    def db(self) -> dict:
+        """micmic DbHandler.db"""
+        self._consolidate_db()
+        return self._db
+
+    @staticmethod
+    def init_db(size=10):
+        db = {}
+        for number, gv_name in zip([size,
+                                    size,
+                                    size,
+                                    size],
+                                   ["Analog", "AnalogOutputStatus",
+                                    "Binary", "BinaryOutputStatus"]):
+            val_body = dict((n, None) for n in range(number))
+            db[gv_name] = val_body
+
+        return db
+
+    def _consolidate_db(self):
+        """map group variance to db with 4 keys:
+        "Binary", "BinaryOutputStatus", "Analog", "AnalogOutputStatus"
+        """
+        pass
+        # for Analog
+        _db = {"Analog": self._gv_index_value_nested_dict.get(GroupVariation.Group30Var6)}
+        if _db.get("Analog"):
+            self._db.update(_db)
+        # for AnalogOutputStatus
+        _db = {"AnalogOutputStatus": self._gv_index_value_nested_dict.get(GroupVariation.Group40Var4)}
+        if _db.get("AnalogOutputStatus"):
+            self._db.update(_db)
+        # for Binary
+        _db = {"Binary": self._gv_index_value_nested_dict.get(GroupVariation.Group1Var2)}
+        if _db.get("Binary"):
+            self._db.update(_db)
+        # for Binary
+        _db = {"BinaryOutputStatus": self._gv_index_value_nested_dict.get(GroupVariation.Group10Var2)}
+        if _db.get("BinaryOutputStatus"):
+            self._db.update(_db)
 
 
 def collection_callback(result=None):
@@ -344,7 +389,7 @@ class DBHandler:
                  dbhandler_log_level=logging.INFO, *args, **kwargs):
 
         self.stack_config = stack_config
-        self.db: dict = self.config_db(stack_config)
+        self._db: dict = self.config_db(stack_config)
 
         self.logger = logging.getLogger(self.__class__.__name__)
         self.config_logger(log_level=dbhandler_log_level)
@@ -353,22 +398,22 @@ class DBHandler:
         self.logger.addHandler(stdout_stream)
         self.logger.setLevel(log_level)
 
-    @ staticmethod
+    @staticmethod
     def config_db(stack_config):
         db = {}
         for number, gv_name in zip([stack_config.dbConfig.sizes.numBinary,
                                     stack_config.dbConfig.sizes.numBinaryOutputStatus,
                                     stack_config.dbConfig.sizes.numAnalog,
                                     stack_config.dbConfig.sizes.numAnalogOutputStatus],
-                                   ["Binary", "BinaryOutputStatus",
-                                    "Analog", "AnalogOutputStatus"]):
+                                   ["Analog", "AnalogOutputStatus",
+                                    "Binary", "BinaryOutputStatus"]):
             val_body = dict((n, None) for n in range(number))
             db[gv_name] = val_body
 
         return db
 
     @property
-    def _db(self) -> dict:
+    def db(self) -> dict:
         return self._db
 
     def process(self, command, index):

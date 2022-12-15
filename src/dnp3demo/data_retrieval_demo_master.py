@@ -128,6 +128,7 @@ def main(duration=300):
 
         # print(f"====== master database: {master_application.soe_handler.gv_ts_ind_val_dict}")
         print(f"====== master database: {master_application.soe_handler.gv_index_value_nested_dict}")
+        print(f"====== master database: {master_application.soe_handler.db}")
 
     _log.debug('Exiting.')
     master_application.shutdown()

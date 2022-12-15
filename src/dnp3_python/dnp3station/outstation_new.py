@@ -158,6 +158,48 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         self.db_handler = DBHandler(stack_config=self.stack_config)
         # MyOutStationNew.set_db_handler(self.db_handler)
 
+        # configuration info
+        self._comm_conifg = {
+            "masterstation_ip_str": masterstation_ip_str,
+            "outstation_ip_str": outstation_ip_str,
+            "port": port,
+            "masterstation_id_int": masterstation_id_int,
+            "outstation_id_int": outstation_id_int,
+        }
+
+    @property
+    def channel_statistic(self):
+        """statistics of channel connection actions
+        numOpen: number of times that (successfully) open a connection
+        numOpenFail: number of fail attempts to open a connection
+        numClose: number of such once-open-later-close connections
+
+        Note: when there is 1-to-1 mapping from channel to station, then
+        numOpen - numClose == 1 => SUCCESS
+        numOpen - numClose == 0 => FAIL
+        """
+        return {
+            "numOpen": self.channel.GetStatistics().channel.numOpen,
+            "numOpenFail": self.channel.GetStatistics().channel.numOpenFail,
+            "numClose": self.channel.GetStatistics().channel.numClose}
+
+    @property
+    def is_connected(self):
+        """
+        Note: when there is 1-to-1 mapping from channel to station, then
+        numOpen - numClose == 1 => SUCCESS
+        numOpen - numClose == 0 => FAIL
+        """
+        if self.channel_statistic.get("numOpen") - self.channel_statistic.get("numClose") == 1:
+            return True
+        else:
+            return False
+
+    def get_config(self):
+        """print out the configuration
+        example"""
+        return self._comm_conifg
+
     @classmethod
     def add_outstation_app(cls, outstation_id: str, outstation_app: MyOutStationNew):
         """add outstation instance to outstation pool,
