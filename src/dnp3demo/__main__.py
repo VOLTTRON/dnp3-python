@@ -1,21 +1,55 @@
-from dnp3demo import data_retrieval_demo
+from dnp3demo import data_retrieval_demo, control_workflow_demo
+from dnp3demo import run_master, run_outstation
+import argparse
 
 
 def main():
-    """Read the Real Python article feed"""
+    # Initialize parser
+    parser = argparse.ArgumentParser(
+        prog="dnp3demo",
+        description="Basic dnp3 use case demo",
+        # epilog="Thanks for using %(prog)s! :)",
+    )
 
-    # If an article ID is given, then show the article
-    # if len(sys.argv) > 1:
-    #     article = feed.get_article(sys.argv[1])
-    #     viewer.show(article)
-    #
-    # # If no ID is given, then show a list of all articles
-    # else:
-    #     site = feed.get_site()
-    #     titles = feed.get_titles()
-    #     viewer.show_list(site, titles)
-    data_retrieval_demo.main()
+    # subcommand
+    # Note: by using `dest="command"`, we create namespace, such that args.command
+    # to access subcommand
+    subparsers = parser.add_subparsers(title="dnp3demo Sub-command",
+                                       # help='run-station sub-command help',
+                                       dest="command")
+    parser_master = subparsers.add_parser('master', help='run an interactive master')
+    # parser_master = subparsers
+    parser_master = run_master.setup_args(parser_master)
+
+    parser_outstation = subparsers.add_parser('outstation', help='run an interactive outstation')
+    parser_outstation = run_outstation.setup_args(parser_outstation)
+
+    # demo-subcommand (default)
+    parser_demo = subparsers.add_parser('demo', help='run dnp3 demo with default master and outstation', )
+    subparser_group = parser_demo.add_mutually_exclusive_group(required=True)
+    subparser_group.add_argument("-dg", "--demo-get-point", action="store_true",
+                                 help="Demo get point workflow. (default)")
+    subparser_group.add_argument("-ds", "--demo-set-point", action="store_true",
+                                 help="Demo set point workflow.")
+    # read args
+    args = parser.parse_args()
+
+    cmd = args.command
+    if cmd == "master":
+        run_master.main(parser=parser)
+    elif cmd == "outstation":
+        run_outstation.main(parser=parser)
+    elif cmd == "demo":
+        if args.demo_set_point:
+            control_workflow_demo.main()
+        else:
+            data_retrieval_demo.main()
+    elif cmd is None:  # default behavior
+        data_retrieval_demo.main()
 
 
 if __name__ == "__main__":
     main()
+    print("============")
+    print("End of Demo.")
+    print("============")

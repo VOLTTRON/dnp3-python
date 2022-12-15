@@ -7,6 +7,7 @@ from pydnp3 import opendnp3, openpal
 from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 
 from time import sleep
+import time
 
 import datetime
 
@@ -21,7 +22,7 @@ _log.setLevel(logging.DEBUG)
 # _log.setLevel(logging.ERROR)
 
 
-def main():
+def main(duration=300):
     # cmd_interface_master = MasterCmdNew()
     # master_application = MyMasterNew(log_handler=MyLogger(),
     #                                  listener=AppChannelListener(),
@@ -34,7 +35,12 @@ def main():
     _log.debug('Initialization complete. OutStation in command loop.')
 
     count = 0
-    while count < 20:
+    start = time.time()
+    end = time.time()
+
+    count = 0
+    while count < 1000 and (end - start) < duration:
+        end = time.time()
         sleep(5)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
@@ -70,6 +76,7 @@ def main():
                 p_val = random.choice(pts)
                 print(f"====== Outstation update index {i} with {p_val}")
                 outstation_application.apply_update(opendnp3.Binary(True), i)
+        print(f"====== outstation database: {outstation_application.db_handler.db}")
 
     _log.debug('Exiting.')
 

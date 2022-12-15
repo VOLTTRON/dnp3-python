@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 import logging
 import sys
 
+import pydnp3.asiopal
 from pydnp3 import opendnp3, openpal, asiopal, asiodnp3
 import time
 
-from typing import Union, Type
+from typing import Union, Type, Dict
 
 from .station_utils import master_to_outstation_command_parser
 from .station_utils import OutstationCmdType, MasterCmdType
 # from .outstation_utils import MeasurementType
+from .station_utils import DBHandler
 
 LOG_LEVELS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
 LOCAL_IP = "0.0.0.0"
@@ -21,7 +25,7 @@ stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname
 _log = logging.getLogger(__name__)
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
-# _log.setLevel(logging.ERROR)  # TODO: encapsulate this
+# _log.setLevel(logging.ERROR)
 _log.setLevel(logging.INFO)
 
 # alias
@@ -54,7 +58,11 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
                       into outgoing messages.
         """
 
-    outstation = None
+    # outstation = None
+    # db_handler = None
+    outstation_application = None
+    # outstation_pool = {}  # a pool of outstations
+    outstation_application_pool: Dict[str, MyOutStationNew] = {}  # a pool of outstation applications
 
     def __init__(self,
                  masterstation_ip_str: str = "0.0.0.0",
@@ -85,19 +93,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # Note: dbconfig signature at cpp/libs/include/asiodnp3/DatabaseConfig.h
         # which has sizes parameter
         self.configure_database(self.stack_config.dbConfig)  # TODO: refactor it to outside of the class.
-        # print("=====verify self.stack_config.dbConfig.analog[0].svariation",
-        #       self.stack_config.dbConfig.analog[0].svariation)
-        # self.stack_config.dbConfig.analog[0].svariation = opendnp3.StaticAnalogVariation.Group30Var5
-        # print("=====verify again self.stack_config.dbConfig.analog[0].svariation",
-        #       self.stack_config.dbConfig.analog[0].svariation)
-        #
-        # print("====self.stack_config.dbConfig.analog[0].svariation type", type(self.stack_config.dbConfig.analog[0].svariation ))
-        #
-        # # print("=======experiment", self.stack_config.dbConfig.binary.toView)
-        # print("=======after self.stack_config", self.stack_config.dbConfig)
-        # print("=======experiment", self.stack_config.dbConfig.sizes.numAnalog)
 
-        # threads_to_allocate = 1
         # self.log_handler = MyLogger()
         self.log_handler = asiodnp3.ConsoleLogger().Create()  # (or use this during regression testing)
         # self.manager = asiodnp3.DNP3Manager(threads_to_allocate, self.log_handler)
@@ -122,15 +118,22 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
                                                  listener=self.listener)
 
         _log.debug('Adding the outstation to the channel.')
-        self.command_handler = OutstationCommandHandler()
+        self.outstation_id = outstation_ip_str + "-" + str(port)
+        # self.command_handler = OutstationCommandHandler()
+        self.command_handler = MyOutstationCommandHandler()
+        # Note: use post init to link outstation application and OutstationCommandHandler instance(object)
+        self.command_handler.post_init(outstation_id=self.outstation_id)
         # self.command_handler =  opendnp3.SuccessCommandHandler().Create() # (or use this during regression testing)
-        # self.outstation_application = OutstationApplication()
-        self.outstation_application = self
-        self.outstation = self.channel.AddOutstation(id="outstation",
+        # init outstation applicatioin, # Note: singleton for AddOutstation()
+        MyOutStationNew.set_outstation_application(outstation_application=self)
+
+        # finally, init outstation
+        self.outstation = self.channel.AddOutstation(id="outstation-" + self.outstation_id,
                                                      commandHandler=self.command_handler,
-                                                     # application=self,
-                                                     application=self.outstation_application,
+                                                     application=MyOutStationNew.outstation_application,
                                                      config=self.stack_config)
+
+        MyOutStationNew.add_outstation_app(outstation_id=self.outstation_id, outstation_app=self.outstation_application)
 
         # Configure log level for channel(tcpclient) and outstation
         # note: one of the following
@@ -139,7 +142,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         #   ALL_COMMS = 130720
         #   NORMAL = 15
         #   NOTHING = 0
-        # TODO: add def set_channel_log_level, def set_master_log_level
+
         _log.debug('Configuring log level')
         self.channel_log_level: opendnp3.levels = channel_log_level
         self.outstation_log_level: opendnp3.levels = outstation_log_level
@@ -150,10 +153,76 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # self.master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))
 
         # Put the Outstation singleton in OutstationApplication so that it can be used to send updates to the Master.
-        MyOutStationNew.set_outstation(self.outstation)  # TODO: change MyOutStationNew to cls
+        # MyOutStationNew.set_outstation(self.outstation)  # Note: this needs to be self.outstation (not cls.outstation)
+        #
+        self.db_handler = DBHandler(stack_config=self.stack_config)
+        # MyOutStationNew.set_db_handler(self.db_handler)
 
+        # configuration info
+        self._comm_conifg = {
+            "masterstation_ip_str": masterstation_ip_str,
+            "outstation_ip_str": outstation_ip_str,
+            "port": port,
+            "masterstation_id_int": masterstation_id_int,
+            "outstation_id_int": outstation_id_int,
+        }
 
-    # @staticmethod
+    @property
+    def channel_statistic(self):
+        """statistics of channel connection actions
+        numOpen: number of times that (successfully) open a connection
+        numOpenFail: number of fail attempts to open a connection
+        numClose: number of such once-open-later-close connections
+
+        Note: when there is 1-to-1 mapping from channel to station, then
+        numOpen - numClose == 1 => SUCCESS
+        numOpen - numClose == 0 => FAIL
+        """
+        return {
+            "numOpen": self.channel.GetStatistics().channel.numOpen,
+            "numOpenFail": self.channel.GetStatistics().channel.numOpenFail,
+            "numClose": self.channel.GetStatistics().channel.numClose}
+
+    @property
+    def is_connected(self):
+        """
+        Note: when there is 1-to-1 mapping from channel to station, then
+        numOpen - numClose == 1 => SUCCESS
+        numOpen - numClose == 0 => FAIL
+        """
+        if self.channel_statistic.get("numOpen") - self.channel_statistic.get("numClose") == 1:
+            return True
+        else:
+            return False
+
+    def get_config(self):
+        """print out the configuration
+        example"""
+        return self._comm_conifg
+
+    @classmethod
+    def add_outstation_app(cls, outstation_id: str, outstation_app: MyOutStationNew):
+        """add outstation instance to outstation pool,
+        the id is in the format of `ip-port`, e.g., `0.0.0.0-20000`."""
+        cls.outstation_application_pool[outstation_id] = outstation_app
+
+    @classmethod
+    def get_outstation_app(cls, outstation_id: str) -> MyOutStationNew:
+        """get outstation instance from the outstation pool using outstation id,
+        the id is in the format of `ip-port`, e.g., `0.0.0.0-20000`."""
+        return cls.outstation_application_pool.get(outstation_id)
+
+    @classmethod
+    def set_outstation_application(cls, outstation_application):
+        """
+            use singleton
+            Note: at this version,needs to keep this function
+        """
+        if cls.outstation_application:
+            pass
+        else:
+            cls.outstation_application = outstation_application
+
     def configure_stack(self):
         """Set up the OpenDNP3 configuration."""
         stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
@@ -237,30 +306,13 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
             Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
         """
         time.sleep(2)  # Note: hard-coded sleep to avoid hanging process
-        _outstation = self.get_outstation()
+        # _outstation = self.get_outstation()
+        _outstation = self.outstation
         _outstation.Shutdown()
         # del _outstation
         self.channel.Shutdown()
 
-        # self.manager.Shutdown()
-
-    @classmethod  # TODO: Justify the necessity to use class method
-    def get_outstation(cls):
-        """Get the singleton instance of IOutstation."""
-        return cls.outstation
-
-    @classmethod
-    def set_outstation(cls, outstn):
-        """
-            Set the singleton instance of IOutstation, as returned from the channel's AddOutstation call.
-
-            Making IOutstation available as a singleton allows other classes (e.g. the command-line UI)
-            to send commands to it -- see apply_update().
-        """
-        cls.outstation = outstn
-
-    @classmethod
-    def process_point_value(cls, command_type, command, index, op_type):
+    def process_point_value(self, command_type, command, index, op_type):
         """
             A PointValue was received from the Master. Process its payload then up database (For control workflow)
             Note: parse master operation command to outstation update command, then reuse apply_update.
@@ -281,10 +333,11 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # Note: print("command value ", command.value)  for AnalogOutput/AnalogOutputDouble64, etc.
         outstation_cmd = master_to_outstation_command_parser(command)
         # then reuse apply_update
-        cls.apply_update(outstation_cmd, index)
+        # cls.apply_update(outstation_cmd, index)
+        self.apply_update(outstation_cmd, index)
 
-    @classmethod
-    def apply_update(cls,
+    # @classmethod
+    def apply_update(self,
                      measurement: OutstationCmdType,
                      index):
         """
@@ -303,7 +356,11 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # builder.Update(measurement, index)
         # update = builder.Build()
         update = asiodnp3.UpdateBuilder().Update(measurement, index).Build()
-        cls.get_outstation().Apply(update)
+        # cls.get_outstation().Apply(update)
+        self.outstation.Apply(update)
+
+        # cls.db_handler.process(measurement, index)
+        self.db_handler.process(measurement, index)
 
     def __del__(self):
         try:
@@ -312,15 +369,25 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
             pass
 
 
-class OutstationCommandHandler(opendnp3.ICommandHandler):
+class MyOutstationCommandHandler(opendnp3.ICommandHandler):
     """
         Override ICommandHandler in this manner to implement application-specific command handling.
 
         ICommandHandler implements the Outstation's handling of Select and Operate,
         which relay commands and data from the Master to the Outstation.
+
+        Note: this class CANNOT implement init
     """
 
-    outstation_application = MyOutStationNew
+    # outstation_application = MyOutStationNew
+    outstation_id = ""
+
+    # def __init__(self, outstation_id="some-id"):
+    #     self.outstation_id = outstation_id
+
+    def post_init(self, outstation_id, **kwargs):
+        """helper function to pass values, e.g., outstation_id"""
+        self.outstation_id = outstation_id
 
     def Start(self):
         _log.debug('In OutstationCommandHandler.Start')
@@ -338,10 +405,15 @@ class OutstationCommandHandler(opendnp3.ICommandHandler):
         :param index: int
         :return: CommandStatus
         """
-        # print("===========command, ", command)
-        # print("===========index, ", index)
-        self.outstation_application.process_point_value('Select', command, index, None)
-        return opendnp3.CommandStatus.SUCCESS
+        outstation_application_pool = MyOutStationNew.outstation_application_pool
+        outstation_app = outstation_application_pool.get(self.outstation_id)
+
+        try:
+            outstation_app.process_point_value('Select', command, index, None)
+            return opendnp3.CommandStatus.SUCCESS
+        except Exception as e:
+            _log.error(e)
+            raise e
 
     def Operate(self, command, index, op_type):
         """
@@ -355,11 +427,16 @@ class OutstationCommandHandler(opendnp3.ICommandHandler):
         :param op_type: OperateType
         :return: CommandStatus
         """
-        # print("Operate===========command, ", command)
-        # print("Operate===========index, ", index)
-        # print("Operate===========op_type, ", op_type)
-        self.outstation_application.process_point_value('Operate', command, index, op_type)
-        return opendnp3.CommandStatus.SUCCESS
+
+        outstation_application_pool = MyOutStationNew.outstation_application_pool
+        outstation_app = outstation_application_pool.get(self.outstation_id)
+        try:
+            # self.outstation_application.process_point_value('Operate', command, index, op_type)
+            outstation_app.process_point_value('Operate', command, index, op_type)
+            return opendnp3.CommandStatus.SUCCESS
+        except Exception as e:
+            _log.error(e)
+            raise e
 
 
 class AppChannelListener(asiodnp3.IChannelListener):
@@ -372,18 +449,3 @@ class AppChannelListener(asiodnp3.IChannelListener):
 
     def OnStateChange(self, state):
         _log.debug('In AppChannelListener.OnStateChange: state={}'.format(state))
-
-
-class MyLogger(openpal.ILogHandler):
-    """
-        Override ILogHandler in this manner to implement application-specific logging behavior.
-    """
-
-    def __init__(self):
-        super(MyLogger, self).__init__()
-
-    def Log(self, entry):
-        filters = entry.filters.GetBitfield()
-        location = entry.location.rsplit('/')[-1] if entry.location else ''
-        message = entry.message
-        _log.debug('Log\tfilters={}\tlocation={}\tentry={}'.format(filters, location, message))

@@ -44,6 +44,29 @@ ms(1666217819745) INFO    server - Accepted connection from: 127.0.0.1
 ```
 
 
+> **_NOTE:_**  Use `python -m dnp3demo -h` to see demo options
+
+```
+$ python -m dnp3demo -h
+
+Basic dnp3 use case demo
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d sec, --duration sec
+                        Configure demo duration (in seconds.)
+  -rm, --run-master-station
+                        Run a standalone master station.
+  -ro, --run-outstation
+                        Run a standalone master station.
+  -dg, --demo-get-point
+                        Demo get point workflow.
+  -ds, --demo-set-point
+                        Demo set point workflow.
+
+
+```
+
 ## For Developers
 
 pydnp3 is a thin wrapper around opendnp3 classes. Documentation for the opendnp3
