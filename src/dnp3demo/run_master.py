@@ -30,13 +30,26 @@ def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
                         metavar="x.x.x.x")
     parser.add_argument("-p", "--port", action="store", default=20000, type=int,
                         metavar="<PORT>")
-    parser.add_argument("-mid", "--master-id", action="store", default=1, type=int,
+    parser.add_argument("-mid", "--master-id", action="store", default=2, type=int,
                         metavar="<ID>")
-    parser.add_argument("-oid", "--outstation-id", action="store", default=2, type=int,
+    parser.add_argument("-oid", "--outstation-id", action="store", default=1, type=int,
                         metavar="<ID>")
 
     return parser
 
+
+def print_menu():
+    welcome_str = """
+    =================================================================
+    OPTION MENU
+    Type
+    <a> - set analog-output point value
+    <b> - set binary-output point value
+    <dd> - display database
+    <dc> - display configuration
+    =================================================================
+    """
+    print(welcome_str)
 
 def main(parser=None, *args, **kwargs):
 
@@ -67,10 +80,11 @@ def main(parser=None, *args, **kwargs):
         # master_log_level=opendnp3.levels.ALL_COMMS
         # soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
     )
+    _log.info("Communication Config", master_application.get_config())
     master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
 
-    sleep(2)
+    sleep(3)
     # Note: if without sleep(2) there will be a glitch when first send_select_and_operate_command
     #  (i.e., all the values are zero, [(0, 0.0), (1, 0.0), (2, 0.0), (3, 0.0)]))
     #  since it would not update immediately
@@ -80,42 +94,74 @@ def main(parser=None, *args, **kwargs):
         # sleep(1)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
+        print(f"=========== Count {count}")
 
-        print()
-        print("=================================================================")
-        print("Set AnalogOutput point")
-        print("Type in <value> and <index>. Separate with space, then hit ENTER.")
-        print("=================================================================")
-        print()
-        input_str = input()
-        try:
-            p_val = float(input_str.split(" ")[0])
-            index = int(input_str.split(" ")[1])
+        if master_application.is_connected:
+            # print("Communication Config", master_application.get_config())
+            print_menu()
+        else:
+            print("Communication error.")
+            print("Communication Config", master_application.get_config())
+            print("Start retry...")
+            sleep(2)
+            continue
 
-            master_application.send_direct_point_command(group=40, variation=4, index=index, val_to_set=p_val)
-            # master_application.get_db_by_group_variation(group=30, variation=6)
-            # master_application.get_db_by_group_variation(group=40, variation=4)
-            # master_application.send_scan_all_request()
-            # sleep(3)
-
-        except Exception as e:
-            print(f"your input string '{input_str}'")
-            print(e)
-
-        master_application.send_scan_all_request()
-        sleep(3)
-
-        # db_print = json.dumps(master_application.soe_handler.db, indent=4, sort_keys=True)
-        db_print = master_application.soe_handler.db
-        # print(f"====== master database: {master_application.soe_handler.gv_index_value_nested_dict}")
-        print(f"====== master database: {db_print}")
-        # print("===== numOpen", master_application.channel.GetStatistics().channel.numOpen)
-        # print("===== numOpenFail", master_application.channel.GetStatistics().channel.numOpenFail)
-        # print("===== numClose", master_application.channel.GetStatistics().channel.numClose)
-
-        print(master_application.get_config())
-        print(master_application.is_connected)
-        print(master_application.channel_statistic)
+        option = input()  # Note: one of ["a", "b", "dd", "dc"]
+        while True:
+            if option == "a":
+                print("You chose <a> - set analog-output point value")
+                print("Type in <value> and <index>. Separate with space, then hit ENTER.")
+                print("Type 'q', 'quit', 'exit' to main menu.")
+                input_str = input()
+                if input_str in ["q", "quit", "exit"]:
+                    break
+                try:
+                    p_val = float(input_str.split(" ")[0])
+                    index = int(input_str.split(" ")[1])
+                    master_application.send_direct_point_command(group=40, variation=4, index=index, val_to_set=p_val)
+                    result = master_application.get_db_by_group_variation(group=40, variation=4)
+                    print(result)
+                    sleep(2)
+                except Exception as e:
+                    print(f"your input string '{input_str}'")
+                    print(e)
+            elif option == "b":
+                print("You chose <b> - set binary-output point value")
+                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER.")
+                input_str = input()
+                if input_str in ["q", "quit", "exit"]:
+                    break
+                try:
+                    p_val_input = input_str.split(" ")[0]
+                    if p_val_input not in ["0", "1"]:
+                        raise ValueError("binary-output value only takes '0' or '1'.")
+                    else:
+                        p_val = True if p_val_input == "1" else False
+                    index = int(input_str.split(" ")[1])
+                    master_application.send_direct_point_command(group=10, variation=2, index=index, val_to_set=p_val)
+                    result = master_application.get_db_by_group_variation(group=10, variation=2)
+                    print(result)
+                    sleep(2)
+                except Exception as e:
+                    print(f"your input string '{input_str}'")
+                    print(e)
+            elif option == "dd":
+                print("You chose < dd > - display database")
+                master_application.send_scan_all_request()
+                sleep(1)
+                db_print = master_application.soe_handler.db
+                print(db_print)
+                sleep(2)
+                break
+            elif option == "dc":
+                print("You chose < dd > - display configuration")
+                print(master_application.get_config())
+                sleep(3)
+                break
+            else:
+                print(f"ERROR- your input `{option}` is not one of the following.")
+                sleep(1)
+                break
 
     _log.debug('Exiting.')
     master_application.shutdown()

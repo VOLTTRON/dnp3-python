@@ -160,6 +160,12 @@ class MyMasterNew:
             "outstation_id_int": outstation_id_int,
         }
 
+    def get_address_id_statics(self):
+        """Note this is not working: i.e., the value numUnknownDestination is always 0"""
+        # print("numUnknownDestination", master_application.master.GetStackStatistics().link.numUnknownDestination)
+        # print("numUnknownSource", master_application.master.GetStackStatistics().link.numUnknownSource)
+        pass
+
     @property
     def channel_statistic(self):
         """statistics of channel connection actions
