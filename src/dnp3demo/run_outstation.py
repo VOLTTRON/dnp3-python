@@ -5,7 +5,7 @@ import argparse
 
 from pydnp3 import opendnp3
 from dnp3_python.dnp3station.station_utils import command_callback
-from dnp3_python.dnp3station.master_new import MyMasterNew
+# from dnp3_python.dnp3station.master_new import MyMasterNew
 from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 
 from time import sleep
@@ -42,8 +42,10 @@ def print_menu():
     welcome_str = """
 =================================================================
 MENU
-<a> - set analog-output point value
-<b> - set binary-output point value
+<ai> - set analog-input point value
+<ao> - set analog-output point value
+<bi> - set binary-input point value
+<bo> - set binary-output point value
 <dd> - display database
 <dc> - display configuration
 =================================================================
@@ -55,8 +57,8 @@ def main(parser=None, *args, **kwargs):
     if parser is None:
         # Initialize parser
         parser = argparse.ArgumentParser(
-            prog="dnp3-master",
-            description="Run a dnp3 master",
+            prog="dnp3-outstation",
+            description="Run a dnp3 outstation",
             # epilog="Thanks for using %(prog)s! :)",
         )
         parser = setup_args(parser)
@@ -68,7 +70,7 @@ def main(parser=None, *args, **kwargs):
     d_args = vars(args)
     print(__name__, d_args)
 
-    master_application = MyMasterNew(
+    outstation_application = MyOutStationNew(
         masterstation_ip_str=args.master_ip,
         outstation_ip_str=args.outstation_ip,
         port=args.port,
@@ -79,9 +81,9 @@ def main(parser=None, *args, **kwargs):
         # master_log_level=opendnp3.levels.ALL_COMMS
         # soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
     )
-    _log.info("Communication Config", master_application.get_config())
-    master_application.start()
-    _log.debug('Initialization complete. Master Station in command loop.')
+    _log.info("Communication Config", outstation_application.get_config())
+    outstation_application.start()
+    _log.debug('Initialization complete. Outstation in command loop.')
 
     sleep(3)
     # Note: if without sleep(2) there will be a glitch when first send_select_and_operate_command
@@ -95,20 +97,20 @@ def main(parser=None, *args, **kwargs):
         count += 1
         print(f"=========== Count {count}")
 
-        if master_application.is_connected:
+        if outstation_application.is_connected:
             # print("Communication Config", master_application.get_config())
             print_menu()
         else:
             print("Communication error.")
-            print("Communication Config", master_application.get_config())
+            print("Communication Config", outstation_application.get_config())
             print("Start retry...")
             sleep(2)
             continue
 
-        option = input()  # Note: one of ["a", "b", "dd", "dc"]
+        option = input()  # Note: one of ["ai", "ao", "bi", "bo",  "dd", "dc"]
         while True:
-            if option == "a":
-                print("You chose <a> - set analog-output point value")
+            if option == "ai":
+                print("You chose <ai> - set analog-input point value")
                 print("Type in <float> and <index>. Separate with space, then hit ENTER.")
                 print("Type 'q', 'quit', 'exit' to main menu.")
                 input_str = input()
@@ -117,15 +119,32 @@ def main(parser=None, *args, **kwargs):
                 try:
                     p_val = float(input_str.split(" ")[0])
                     index = int(input_str.split(" ")[1])
-                    master_application.send_direct_point_command(group=40, variation=4, index=index, val_to_set=p_val)
-                    result = master_application.get_db_by_group_variation(group=40, variation=4)
+                    outstation_application.apply_update(opendnp3.Analog(value=p_val), index)
+                    result = {"Analog": outstation_application.db_handler.db.get("Analog")}
                     print(result)
                     sleep(2)
                 except Exception as e:
                     print(f"your input string '{input_str}'")
                     print(e)
-            elif option == "b":
-                print("You chose <b> - set binary-output point value")
+            elif option == "ao":
+                print("You chose <ao> - set analog-output point value")
+                print("Type in <float> and <index>. Separate with space, then hit ENTER.")
+                print("Type 'q', 'quit', 'exit' to main menu.")
+                input_str = input()
+                if input_str in ["q", "quit", "exit"]:
+                    break
+                try:
+                    p_val = float(input_str.split(" ")[0])
+                    index = int(input_str.split(" ")[1])
+                    outstation_application.apply_update(opendnp3.AnalogOutputStatus(value=p_val), index)
+                    result = {"AnalogOutputStatus": outstation_application.db_handler.db.get("AnalogOutputStatus")}
+                    print(result)
+                    sleep(2)
+                except Exception as e:
+                    print(f"your input string '{input_str}'")
+                    print(e)
+            elif option == "bi":
+                print("You chose <bi> - set binary-input point value")
                 print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER.")
                 input_str = input()
                 if input_str in ["q", "quit", "exit"]:
@@ -137,8 +156,28 @@ def main(parser=None, *args, **kwargs):
                     else:
                         p_val = True if p_val_input == "1" else False
                     index = int(input_str.split(" ")[1])
-                    master_application.send_direct_point_command(group=10, variation=2, index=index, val_to_set=p_val)
-                    result = master_application.get_db_by_group_variation(group=10, variation=2)
+                    outstation_application.apply_update(opendnp3.Binary(value=p_val), index)
+                    result = {"Binary": outstation_application.db_handler.db.get("Binary")}
+                    print(result)
+                    sleep(2)
+                except Exception as e:
+                    print(f"your input string '{input_str}'")
+                    print(e)
+            elif option == "bo":
+                print("You chose <bo> - set binary-output point value")
+                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER.")
+                input_str = input()
+                if input_str in ["q", "quit", "exit"]:
+                    break
+                try:
+                    p_val_input = input_str.split(" ")[0]
+                    if p_val_input not in ["0", "1"]:
+                        raise ValueError("binary-output value only takes '0' or '1'.")
+                    else:
+                        p_val = True if p_val_input == "1" else False
+                    index = int(input_str.split(" ")[1])
+                    outstation_application.apply_update(opendnp3.BinaryOutputStatus(value=p_val), index)
+                    result = {"BinaryOutputStatus": outstation_application.db_handler.db.get("BinaryOutputStatus")}
                     print(result)
                     sleep(2)
                 except Exception as e:
@@ -146,15 +185,13 @@ def main(parser=None, *args, **kwargs):
                     print(e)
             elif option == "dd":
                 print("You chose < dd > - display database")
-                master_application.send_scan_all_request()
-                sleep(1)
-                db_print = master_application.soe_handler.db
+                db_print = outstation_application.db_handler.db
                 print(db_print)
                 sleep(2)
                 break
             elif option == "dc":
-                print("You chose < dc > - display configuration")
-                print(master_application.get_config())
+                print("You chose < dc> - display configuration")
+                print(outstation_application.get_config())
                 sleep(3)
                 break
             else:
@@ -163,7 +200,7 @@ def main(parser=None, *args, **kwargs):
                 break
 
     _log.debug('Exiting.')
-    master_application.shutdown()
+    outstation_application.shutdown()
     # outstation_application.shutdown()
 
 
