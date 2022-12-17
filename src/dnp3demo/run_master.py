@@ -17,7 +17,7 @@ _log.setLevel(logging.DEBUG)
 def input_prompt(display_str=None) -> str:
     if display_str is None:
         display_str = """
-======== Your Input Here: ========
+======== Your Input Here: ==(master)======
 """
     return input(display_str)
 
