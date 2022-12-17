@@ -42,10 +42,8 @@ def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 def print_menu():
     welcome_str = """\
 ========================= MENU ==================================
-<ai> - set analog-input point value
-<ao> - set analog-output point value
-<bi> - set binary-input point value
-<bo> - set binary-output point value
+<a> - set analog-output point value
+<b> - set binary-output point value
 <dd> - display database
 <dc> - display configuration
 =================================================================\
