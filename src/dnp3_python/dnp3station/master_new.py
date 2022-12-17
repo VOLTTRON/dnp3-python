@@ -82,6 +82,13 @@ class MyMasterNew:
         # - the init parameter list is a bit long.
         # - allow configuration method after init
 
+        # Note:
+        # when connect to local outstation, use default `outstation_ip_str: str = "127.0.0.1"`
+        # when connect to remote outstation, use specific ip.
+
+        # Note: not recommend to change masterstation_id_int and outstation_id_int,
+        # if they need to be changed, make sure to match the outstation configuration.
+
         self.log_handler = log_handler
         self.listener = listener
         self.soe_handler: SOEHandler = soe_handler

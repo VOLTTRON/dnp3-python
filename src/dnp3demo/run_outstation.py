@@ -27,9 +27,9 @@ def input_prompt(display_str=None) -> str:
 def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
     # Adding optional argument
-    parser.add_argument("-mip", "--master-ip", action="store", default="0.0.0.0", type=str,
-                        metavar="<IP>")
-    parser.add_argument("-oip", "--outstation-ip", action="store", default="127.0.0.1", type=str,
+    # parser.add_argument("-mip", "--master-ip", action="store", default="0.0.0.0", type=str,
+    #                     metavar="<IP>")
+    parser.add_argument("-oip", "--outstation-ip", action="store", default="0.0.0.0", type=str,
                         metavar="<IP>")
     parser.add_argument("-p", "--port", action="store", default=20000, type=int,
                         metavar="<PORT>")
@@ -73,7 +73,7 @@ def main(parser=None, *args, **kwargs):
     print(__name__, d_args)
 
     outstation_application = MyOutStationNew(
-        masterstation_ip_str=args.master_ip,
+        # masterstation_ip_str=args.master_ip,
         outstation_ip_str=args.outstation_ip,
         port=args.port,
         masterstation_id_int=args.master_id,

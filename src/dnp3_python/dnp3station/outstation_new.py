@@ -65,8 +65,8 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
     outstation_application_pool: Dict[str, MyOutStationNew] = {}  # a pool of outstation applications
 
     def __init__(self,
-                 masterstation_ip_str: str = "0.0.0.0",
-                 outstation_ip_str: str = "127.0.0.1",
+                 # masterstation_ip_str: str = None,
+                 outstation_ip_str: str = "0.0.0.0",
                  port: int = 20000,
                  masterstation_id_int: int = 2,
                  outstation_id_int: int = 1,
@@ -76,6 +76,14 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
                  outstation_log_level=opendnp3.levels.NORMAL,
                  ):
         super().__init__()
+
+        # Note:
+        # masterstation_ip_str setting does not take effect in this version
+        # recommend using default outstation_ip_str == "0.0.0.0",
+        # which works both for local and remote connection.
+
+        # Note: not recommend to change masterstation_id_int and outstation_id_int,
+        # if they need to be changed, make sure to match the master configuration.
 
         # TODO: refactor to apply factory pattern, allow further config
         # - the init parameter list is a bit long.
@@ -160,7 +168,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
 
         # configuration info
         self._comm_conifg = {
-            "masterstation_ip_str": masterstation_ip_str,
+            # "masterstation_ip_str": masterstation_ip_str,
             "outstation_ip_str": outstation_ip_str,
             "port": port,
             "masterstation_id_int": masterstation_id_int,
