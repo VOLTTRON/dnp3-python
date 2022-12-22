@@ -7,7 +7,7 @@ def main():
     # Initialize parser
     parser = argparse.ArgumentParser(
         prog="dnp3demo",
-        description="Basic dnp3 use case demo",
+        description="Dnp3 use case demo",
         # epilog="Thanks for using %(prog)s! :)",
     )
 
@@ -17,11 +17,14 @@ def main():
     subparsers = parser.add_subparsers(title="dnp3demo Sub-command",
                                        # help='run-station sub-command help',
                                        dest="command")
-    parser_master = subparsers.add_parser('master', help='run an interactive master')
+    parser_master = subparsers.add_parser('master', help='run a configurable master interactive program',
+                                          description='run a configurable master interactive program'
+                                          )
     # parser_master = subparsers
     parser_master = run_master.setup_args(parser_master)
 
-    parser_outstation = subparsers.add_parser('outstation', help='run an interactive outstation')
+    parser_outstation = subparsers.add_parser('outstation', help='run a configurable outstation interactive program',
+                                              description='run a configurable outstation interactive program')
     parser_outstation = run_outstation.setup_args(parser_outstation)
 
     # demo-subcommand (default)

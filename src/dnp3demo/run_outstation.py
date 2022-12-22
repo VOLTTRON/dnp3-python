@@ -30,24 +30,28 @@ def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     # parser.add_argument("-mip", "--master-ip", action="store", default="0.0.0.0", type=str,
     #                     metavar="<IP>")
     parser.add_argument("-oip", "--outstation-ip", action="store", default="0.0.0.0", type=str,
-                        metavar="<IP>")
+                        metavar="<IP>",
+                        help="outstation ip, default: 0.0.0.0")
     parser.add_argument("-p", "--port", action="store", default=20000, type=int,
-                        metavar="<PORT>")
+                        metavar="<PORT>",
+                        help="port, default: 20000")
     parser.add_argument("-mid", "--master-id", action="store", default=2, type=int,
-                        metavar="<ID>")
+                        metavar="<ID>",
+                        help="master id, default: 2")
     parser.add_argument("-oid", "--outstation-id", action="store", default=1, type=int,
-                        metavar="<ID>")
+                        metavar="<ID>",
+                        help="master id, default: 1")
 
     return parser
 
 
 def print_menu():
     welcome_str = """\
-========================= MENU ==================================
-<ai> - set analog-input point value
-<ao> - set analog-output point value
-<bi> - set binary-input point value
-<bo> - set binary-output point value
+==== Outstation Operation MENU ==================================
+<ai> - update analog-input point value (for local reading)
+<ao> - update analog-output point value (for local control)
+<bi> - update binary-input point value (for local reading)
+<bo> - update binary-output point value (for local control)
 <dd> - display database
 <dc> - display configuration
 =================================================================\
