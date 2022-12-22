@@ -47,7 +47,7 @@ from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
 from setuptools import find_packages, find_namespace_packages
-__version__ = '0.2.3b1'
+__version__ = '0.2.3b2'
 
 
 class CMakeExtension(Extension):
@@ -126,4 +126,9 @@ setup(
         include=['dnp3_python*', 'dnp3demo']  # to include sub-packages as well.
     ),
     package_dir={"": "src"},
+    entry_points={
+                'console_scripts': [
+                    'dnp3demo = dnp3demo.__main__:main',
+                ]
+            },
 )
