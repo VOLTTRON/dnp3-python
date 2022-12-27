@@ -1,6 +1,7 @@
 from dnp3demo import data_retrieval_demo, control_workflow_demo
 from dnp3demo import run_master, run_outstation
 import argparse
+import argcomplete
 
 
 def main():
@@ -30,10 +31,13 @@ def main():
     # demo-subcommand (default)
     parser_demo = subparsers.add_parser('demo', help='run dnp3 demo with default master and outstation', )
     subparser_group = parser_demo.add_mutually_exclusive_group(required=True)
-    subparser_group.add_argument("-dg", "--demo-get-point", action="store_true",
+    subparser_group.add_argument("--demo-get-point", action="store_true",
                                  help="Demo get point workflow. (default)")
-    subparser_group.add_argument("-ds", "--demo-set-point", action="store_true",
+    subparser_group.add_argument("--demo-set-point", action="store_true",
                                  help="Demo set point workflow.")
+    # auto-complete
+    argcomplete.autocomplete(parser)
+
     # read args
     args = parser.parse_args()
 

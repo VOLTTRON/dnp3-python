@@ -29,16 +29,16 @@ def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     # Adding optional argument
     # parser.add_argument("-mip", "--master-ip", action="store", default="0.0.0.0", type=str,
     #                     metavar="<IP>")
-    parser.add_argument("-oip", "--outstation-ip", action="store", default="0.0.0.0", type=str,
+    parser.add_argument("--outstation-ip=", action="store", default="0.0.0.0", type=str,
                         metavar="<IP>",
                         help="outstation ip, default: 0.0.0.0")
-    parser.add_argument("-p", "--port", action="store", default=20000, type=int,
+    parser.add_argument("-p=", "--port=", action="store", default=20000, type=int,
                         metavar="<PORT>",
                         help="port, default: 20000")
-    parser.add_argument("-mid", "--master-id", action="store", default=2, type=int,
+    parser.add_argument("--master-id=", action="store", default=2, type=int,
                         metavar="<ID>",
                         help="master id, default: 2")
-    parser.add_argument("-oid", "--outstation-id", action="store", default=1, type=int,
+    parser.add_argument("--outstation-id=", action="store", default=1, type=int,
                         metavar="<ID>",
                         help="master id, default: 1")
 
@@ -78,10 +78,10 @@ def main(parser=None, *args, **kwargs):
 
     outstation_application = MyOutStationNew(
         # masterstation_ip_str=args.master_ip,
-        outstation_ip_str=args.outstation_ip,
-        port=args.port,
-        masterstation_id_int=args.master_id,
-        outstation_id_int=args.outstation_id,
+        outstation_ip_str=d_args.get("outstation_ip="),
+        port=d_args.get("port="),
+        masterstation_id_int=d_args.get("master_id="),
+        outstation_id_int=d_args.get("outstation_id="),
 
         # channel_log_level=opendnp3.levels.ALL_COMMS,
         # master_log_level=opendnp3.levels.ALL_COMMS
