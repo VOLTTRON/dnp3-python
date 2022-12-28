@@ -32,7 +32,7 @@ def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--outstation-ip=", action="store", default="0.0.0.0", type=str,
                         metavar="<IP>",
                         help="outstation ip, default: 0.0.0.0")
-    parser.add_argument("-p=", "--port=", action="store", default=20000, type=int,
+    parser.add_argument("--port=", action="store", default=20000, type=int,
                         metavar="<PORT>",
                         help="port, default: 20000")
     parser.add_argument("--master-id=", action="store", default=2, type=int,
@@ -87,7 +87,7 @@ def main(parser=None, *args, **kwargs):
         # master_log_level=opendnp3.levels.ALL_COMMS
         # soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
     )
-    _log.info("Communication Config", outstation_application.get_config())
+    _log.info("Connection Config", outstation_application.get_config())
     outstation_application.start()
     _log.debug('Initialization complete. Outstation in command loop.')
 
@@ -107,8 +107,8 @@ def main(parser=None, *args, **kwargs):
             # print("Communication Config", master_application.get_config())
             print_menu()
         else:
-            print("Communication error.")
-            print("Communication Config", outstation_application.get_config())
+            print("Connection error.")
+            print("Connection Config", outstation_application.get_config())
             print("Start retry...")
             sleep(2)
             continue
@@ -116,7 +116,7 @@ def main(parser=None, *args, **kwargs):
         option = input_prompt()  # Note: one of ["ai", "ao", "bi", "bo",  "dd", "dc"]
         while True:
             if option == "ai":
-                print("You chose <ai> - set analog-input point value")
+                print("You chose <ai> - update analog-input point value (for local reading)")
                 print("Type in <float> and <index>. Separate with space, then hit ENTER.")
                 print("Type 'q', 'quit', 'exit' to main menu.")
                 input_str = input_prompt()
@@ -133,7 +133,7 @@ def main(parser=None, *args, **kwargs):
                     print(f"your input string '{input_str}'")
                     print(e)
             elif option == "ao":
-                print("You chose <ao> - set analog-output point value")
+                print("You chose <ao> - update analog-output point value (for local control)")
                 print("Type in <float> and <index>. Separate with space, then hit ENTER.")
                 print("Type 'q', 'quit', 'exit' to main menu.")
                 input_str = input_prompt()
@@ -150,7 +150,7 @@ def main(parser=None, *args, **kwargs):
                     print(f"your input string '{input_str}'")
                     print(e)
             elif option == "bi":
-                print("You chose <bi> - set binary-input point value")
+                print("You chose <bi> - update binary-input point value (for local reading)")
                 print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER.")
                 input_str = input_prompt()
                 if input_str in ["q", "quit", "exit"]:
@@ -170,7 +170,7 @@ def main(parser=None, *args, **kwargs):
                     print(f"your input string '{input_str}'")
                     print(e)
             elif option == "bo":
-                print("You chose <bo> - set binary-output point value")
+                print("You chose <bo> - update binary-output point value (for local control)")
                 print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER.")
                 input_str = input_prompt()
                 if input_str in ["q", "quit", "exit"]:

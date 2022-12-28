@@ -31,7 +31,7 @@ def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--outstation-ip=", action="store", default="127.0.0.1", type=str,
                         metavar="<IP>",
                         help="outstation ip, default: 127.0.0.1")
-    parser.add_argument("-p=", "--port=", action="store", default=20000, type=int,
+    parser.add_argument("--port=", action="store", default=20000, type=int,
                         metavar="<PORT>",
                         help="port, default: 20000")
     parser.add_argument("--master-id=", action="store", default=2, type=int,
@@ -84,7 +84,7 @@ def main(parser=None, *args, **kwargs):
         # master_log_level=opendnp3.levels.ALL_COMMS
         # soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
     )
-    _log.info("Communication Config", master_application.get_config())
+    _log.info("Connection Config", master_application.get_config())
     master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
 
@@ -104,8 +104,8 @@ def main(parser=None, *args, **kwargs):
             # print("Communication Config", master_application.get_config())
             print_menu()
         else:
-            print("Communication error.")
-            print("Communication Config", master_application.get_config())
+            print("Connection error.")
+            print("Connection Config", master_application.get_config())
             print("Start retry...")
             sleep(2)
             continue
