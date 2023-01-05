@@ -74,11 +74,11 @@ def main(parser=None, *args, **kwargs):
     print(__name__, d_args)
     # print(args.__dir__())
     master_application = MyMasterNew(
-        masterstation_ip_str=d_args.get("master_ip="),
-        outstation_ip_str=d_args.get("outstation_ip="),
+        master_ip=d_args.get("master_ip="),
+        outstation_ip=d_args.get("outstation_ip="),
         port=d_args.get("port="),
-        masterstation_id_int=d_args.get("master_id="),
-        outstation_id_int=d_args.get("outstation_id="),
+        master_id=d_args.get("master_id="),
+        outstation_id=d_args.get("outstation_id="),
 
         # channel_log_level=opendnp3.levels.ALL_COMMS,
         # master_log_level=opendnp3.levels.ALL_COMMS

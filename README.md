@@ -23,7 +23,7 @@ As an intelligent and robust SCADA protocol, DNP3 gives you many capabilities. S
 - It supports time synchronization and a standard time format
 - It includes only changed data in response messages
 
-For more details about the DNP3 protocol, the `DNP3_Primer.md` article under /docs folder is a good start.
+For more details about the DNP3 protocol, the [DNP3-Primer.md](docs/DNP3-Primer.md) article is a good start.
 
 ## About the dnp3-python Package
 
@@ -95,7 +95,7 @@ dnp3demo Sub-command:
     demo                run dnp3 demo with default master and outstation
 ```
 
-For more details about the `dnp3demo` module, please ref to "dnp3demo-module.md" in "/docs".
+For more details about the `dnp3demo` module, please refer to [dnp3demo-module.md](docs/dnp3demo-Module.md).
 
 ## For Developers
 
@@ -113,9 +113,9 @@ This repository includes two repositories as submodules (under `deps/`):
 
 * dnp3 (https://github.com/automatak/dnp3)
 * pybind11 (https://github.com/Kisensum/pybind11) - This is a fork containing a minor patch
-  required to compile some of the pydnp3 wrapper code. It will be replaced with pybind11 proper
+  required to compile some pydnp3 wrapper code. It will be replaced with pybind11 proper
   when the issue is resolved.
 
-Please find more info in the /docs folder about packaging process, e.g., building from the C++ source code,
+Please find more info [Notes_on_packaging.md](docs/Notes-on-Packaging.md) about packaging process, for example, building from the C++ source code,
 packaging native Python code with C++ binding code, etc.
 
