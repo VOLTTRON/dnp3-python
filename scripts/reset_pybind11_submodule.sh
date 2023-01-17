@@ -3,6 +3,8 @@ git rm --cached deps/pybind11
 rm -rf .git/modules/deps/pybind11
 rm -rf deps/pybind11
 cd deps
-git submodule add https://github.com/Kisensum/pybind11.git
+git submodule add https://github.com/kefeimo/pybind11.git
 git submodule update --init --recursive
-cd ..
+cd pybind11
+git checkout 338d615e12ce41ee021724551841de3cbe0bc1df
+cd ../..
