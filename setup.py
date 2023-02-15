@@ -47,7 +47,7 @@ from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
 from setuptools import find_packages, find_namespace_packages
-__version__ = '0.2.3b'
+__version__ = '0.2.3b2'
 
 
 class CMakeExtension(Extension):
@@ -96,13 +96,13 @@ class CMakeBuild(build_ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
-        setup_path = os.path.dirname(os.path.abspath(__file__))
-        if not "<string>" in open(os.path.join(setup_path, 'deps', 'dnp3', 'cpp', 'libs', 'include', 'asiodnp3', 'IMasterOperations.h')).read():
-            dnp3_path = os.path.join(setup_path, 'deps', 'dnp3')
-            patch_path = os.path.join(setup_path, 'imasteroperations.patch')
-            # dnp3_python_path = os.path.join(setup_path, 'src', 'dnp3_python')
-
-            subprocess.check_call(['git', 'apply', patch_path], cwd=dnp3_path)
+        # setup_path = os.path.dirname(os.path.abspath(__file__))
+        # if not "<string>" in open(os.path.join(setup_path, 'deps', 'dnp3', 'cpp', 'libs', 'include', 'asiodnp3', 'IMasterOperations.h')).read():
+        #     dnp3_path = os.path.join(setup_path, 'deps', 'dnp3')
+        #     patch_path = os.path.join(setup_path, 'imasteroperations.patch')
+        #     # dnp3_python_path = os.path.join(setup_path, 'src', 'dnp3_python')
+        #
+        #     subprocess.check_call(['git', 'apply', patch_path], cwd=dnp3_path)
 
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
@@ -116,7 +116,9 @@ setup(
     url='https://github.com/VOLTTRON/dnp3-python',
     description='pydnp3 -- python binding for opendnp3',
     # long_description='long description',
-    # install_requires=['pybind11>=2.2'],
+    install_requires=[
+        # 'pybind11>=2.2',
+        'argcomplete'],
     ext_modules=[CMakeExtension('pydnp3')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
@@ -126,4 +128,9 @@ setup(
         include=['dnp3_python*', 'dnp3demo']  # to include sub-packages as well.
     ),
     package_dir={"": "src"},
+    entry_points={
+                'console_scripts': [
+                    'dnp3demo = dnp3demo.__main__:main',
+                ]
+            },
 )

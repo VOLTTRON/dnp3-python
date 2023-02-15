@@ -54,15 +54,15 @@ class MyMasterNew:
     """
 
     def __init__(self,
-                 masterstation_ip_str: str = "0.0.0.0",
-                 outstation_ip_str: str = "127.0.0.1",
+                 master_ip: str = "0.0.0.0",
+                 outstation_ip: str = "127.0.0.1",
                  port: int = 20000,
-                 masterstation_id_int: int = 2,
-                 outstation_id_int: int = 1,
-                 concurrencyHint: int = 1,
+                 master_id: int = 2,
+                 outstation_id: int = 1,
+                 concurrency_hint: int = 1,
                  log_handler=asiodnp3.ConsoleLogger().Create(),
                  listener=asiodnp3.PrintingChannelListener().Create(),
-                 # soe_handler=asiodnp3.PrintingSOEHandler().Create(),
+
                  soe_handler=SOEHandler(),
                  master_application=asiodnp3.DefaultMasterApplication().Create(),
                  channel_log_level=opendnp3.levels.NORMAL,
@@ -82,6 +82,13 @@ class MyMasterNew:
         # - the init parameter list is a bit long.
         # - allow configuration method after init
 
+        # Note:
+        # when connect to local outstation, use default `outstation_ip_str: str = "127.0.0.1"`
+        # when connect to remote outstation, use specific ip.
+
+        # Note: not recommend to change masterstation_id_int and outstation_id_int,
+        # if they need to be changed, make sure to match the outstation configuration.
+
         self.log_handler = log_handler
         self.listener = listener
         self.soe_handler: SOEHandler = soe_handler
@@ -96,13 +103,13 @@ class MyMasterNew:
         if not self.stack_config:
             self.stack_config = asiodnp3.MasterStackConfig()
             self.stack_config.master.responseTimeout = openpal.TimeDuration().Seconds(2)
-            self.stack_config.link.RemoteAddr = outstation_id_int  # meaning for outstation, use 1 to follow simulator's default
-            self.stack_config.link.LocalAddr = masterstation_id_int  # meaning for master station, use 2 to follow simulator's default
+            self.stack_config.link.RemoteAddr = outstation_id  # meant for outstation, use 1 as default
+            self.stack_config.link.LocalAddr = master_id  # meant for master station, use 2 as default
 
         # init steps: DNP3Manager(manager) -> TCPClient(channel) -> Master(master)
         # init DNP3Manager(manager)
         _log.debug('Creating a DNP3Manager.')
-        self.manager = asiodnp3.DNP3Manager(concurrencyHint, self.log_handler)
+        self.manager = asiodnp3.DNP3Manager(concurrency_hint, self.log_handler)
         # self.manager = manager
 
         # init TCPClient(channel)
@@ -112,8 +119,8 @@ class MyMasterNew:
         self.channel = self.manager.AddTCPClient(id="tcpclient",
                                                  levels=level,
                                                  retry=self.retry,
-                                                 host=outstation_ip_str,
-                                                 local=masterstation_ip_str,
+                                                 host=outstation_ip,
+                                                 local=master_ip,
                                                  port=port,
                                                  listener=self.listener)
 
@@ -153,11 +160,11 @@ class MyMasterNew:
 
         # configuration info
         self._comm_conifg = {
-            "masterstation_ip_str": masterstation_ip_str,
-            "outstation_ip_str": outstation_ip_str,
+            "master_ip": master_ip,
+            "outstation_ip": outstation_ip,
             "port": port,
-            "masterstation_id_int": masterstation_id_int,
-            "outstation_id_int": outstation_id_int,
+            "master_id": master_id,
+            "outstation_id": outstation_id,
         }
 
     def get_address_id_statics(self):
@@ -201,10 +208,10 @@ class MyMasterNew:
 
     def send_direct_operate_command(self,
                                     command: Union[opendnp3.ControlRelayOutputBlock,
-                                                   opendnp3.AnalogOutputInt16,
-                                                   opendnp3.AnalogOutputInt32,
-                                                   opendnp3.AnalogOutputFloat32,
-                                                   opendnp3.AnalogOutputDouble64],
+                                    opendnp3.AnalogOutputInt16,
+                                    opendnp3.AnalogOutputInt32,
+                                    opendnp3.AnalogOutputFloat32,
+                                    opendnp3.AnalogOutputDouble64],
                                     index: int,
                                     callback: Callable[[opendnp3.ICommandTaskResult], None] = command_callback,
                                     config: opendnp3.TaskConfig = opendnp3.TaskConfig().Default()):

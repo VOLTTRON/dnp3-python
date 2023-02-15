@@ -65,24 +65,31 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
     outstation_application_pool: Dict[str, MyOutStationNew] = {}  # a pool of outstation applications
 
     def __init__(self,
-                 masterstation_ip_str: str = "0.0.0.0",
-                 outstation_ip_str: str = "127.0.0.1",
+                 outstation_ip: str = "0.0.0.0",
                  port: int = 20000,
-                 masterstation_id_int: int = 2,
-                 outstation_id_int: int = 1,
-                 concurrencyHint: int = 1,
+                 master_id: int = 2,
+                 outstation_id: int = 1,
+                 concurrency_hint: int = 1,
 
                  channel_log_level=opendnp3.levels.NORMAL,
                  outstation_log_level=opendnp3.levels.NORMAL,
                  ):
         super().__init__()
 
+        # Note:
+        # masterstation_ip_str setting does not take effect in this version
+        # recommend using default outstation_ip_str == "0.0.0.0",
+        # which works both for local and remote connection.
+
+        # Note: not recommend to change masterstation_id_int and outstation_id_int,
+        # if they need to be changed, make sure to match the master configuration.
+
         # TODO: refactor to apply factory pattern, allow further config
         # - the init parameter list is a bit long.
         # - allow configuration method after init
 
-        self.masterstation_id_int = masterstation_id_int
-        self.outstation_id_int = outstation_id_int
+        self.master_id: int = master_id
+        self.outstation_id: int = outstation_id
 
         _log.debug('Configuring the DNP3 stack.')
         _log.debug('Configuring the outstation database.')
@@ -102,7 +109,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         # init steps: DNP3Manager(manager) -> TCPClient(channel) -> Master(master)
         # init DNP3Manager(manager)
         _log.debug('Creating a DNP3Manager.')
-        self.manager = asiodnp3.DNP3Manager(concurrencyHint, self.log_handler)  # TODO: play with concurrencyHint
+        self.manager = asiodnp3.DNP3Manager(concurrency_hint, self.log_handler)  # TODO: play with concurrencyHint
 
         # init TCPClient(channel)
         _log.debug('Creating the DNP3 channel, a TCP server.')
@@ -113,27 +120,28 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         self.channel = self.manager.AddTCPServer(id="server",
                                                  levels=level,
                                                  retry=self.retry_parameters,
-                                                 endpoint=outstation_ip_str,
+                                                 endpoint=outstation_ip,
                                                  port=port,
                                                  listener=self.listener)
 
         _log.debug('Adding the outstation to the channel.')
-        self.outstation_id = outstation_ip_str + "-" + str(port)
+        self.outstation_app_id = outstation_ip + "-" + str(port)
         # self.command_handler = OutstationCommandHandler()
         self.command_handler = MyOutstationCommandHandler()
         # Note: use post init to link outstation application and OutstationCommandHandler instance(object)
-        self.command_handler.post_init(outstation_id=self.outstation_id)
+        self.command_handler.post_init(outstation_id=self.outstation_app_id)
         # self.command_handler =  opendnp3.SuccessCommandHandler().Create() # (or use this during regression testing)
         # init outstation applicatioin, # Note: singleton for AddOutstation()
         MyOutStationNew.set_outstation_application(outstation_application=self)
 
         # finally, init outstation
-        self.outstation = self.channel.AddOutstation(id="outstation-" + self.outstation_id,
+        self.outstation = self.channel.AddOutstation(id="outstation-" + self.outstation_app_id,
                                                      commandHandler=self.command_handler,
                                                      application=MyOutStationNew.outstation_application,
                                                      config=self.stack_config)
 
-        MyOutStationNew.add_outstation_app(outstation_id=self.outstation_id, outstation_app=self.outstation_application)
+        MyOutStationNew.add_outstation_app(outstation_id=self.outstation_app_id,
+                                           outstation_app=self.outstation_application)
 
         # Configure log level for channel(tcpclient) and outstation
         # note: one of the following
@@ -160,11 +168,11 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
 
         # configuration info
         self._comm_conifg = {
-            "masterstation_ip_str": masterstation_ip_str,
-            "outstation_ip_str": outstation_ip_str,
+            # "masterstation_ip_str": masterstation_ip_str,
+            "outstation_ip_str": outstation_ip,
             "port": port,
-            "masterstation_id_int": masterstation_id_int,
-            "outstation_id_int": outstation_id_int,
+            "masterstation_id_int": master_id,
+            "outstation_id_int": outstation_id,
         }
 
     @property
@@ -240,8 +248,8 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
 
         stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
         stack_config.outstation.params.allowUnsolicited = True  # TODO: create interface for this
-        stack_config.link.LocalAddr = self.outstation_id_int  # meaning for outstation, use 1 to follow simulator's default
-        stack_config.link.RemoteAddr = self.masterstation_id_int  # meaning for master station, use 2 to follow simulator's default
+        stack_config.link.LocalAddr = self.outstation_id  # meaning for outstation, use 1 to follow simulator's default
+        stack_config.link.RemoteAddr = self.master_id  # meaning for master station, use 2 to follow simulator's default
         stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
         return stack_config
 
@@ -351,7 +359,8 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         """
         _log.debug('Recording {} measurement, index={}, '
                    'value={}, flag={}, time={}'
-                   .format(type(measurement), index, measurement.value, measurement.flags.value, measurement.time.value))
+                   .format(type(measurement), index, measurement.value, measurement.flags.value,
+                           measurement.time.value))
         # builder = asiodnp3.UpdateBuilder()
         # builder.Update(measurement, index)
         # update = builder.Build()

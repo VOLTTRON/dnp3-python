@@ -36,15 +36,9 @@ def main():
     outstation_application.start()
     _log.debug('Initialization complete. OutStation in command loop.')
 
-    # sleep(2)  # TODO: the master and outstation init takes time (i.e., configuration). Hard-coded here
-    # Note: if without sleep(2) there will be a glitch when first send_select_and_operate_command
-    #  (i.e., all the values are zero, [(0, 0.0), (1, 0.0), (2, 0.0), (3, 0.0)]))
-    #  since it would not update immediately
-
-    # cmd_interface.startup()
     count = 0
     while count < 10:
-        sleep(1)  # Note: hard-coded, master station query every 1 sec.
+        sleep(2)  # Note: hard-coded, master station query every 1 sec.
 
         count += 1
         print(datetime.datetime.now(), "============count ", count, )
@@ -120,21 +114,17 @@ def main():
         # use case 6: retrieve point values specified by single GroupVariationIDs and index.
         # demo float AnalogOutput,
         result = master_application.get_db_by_group_variation(group=40, variation=4)
-        print(f"===important log: case6 get_db_by_group_variation ==== {count}", datetime.datetime.now(),
+        print(f"===important log: case6 get_db_by_group_variation ==== {count}", "\n", datetime.datetime.now(),
               result)
 
         result = master_application.get_db_by_group_variation(group=40, variation=2)
-        print(f"===important log: case6b get_db_by_group_variation ==== {count}", datetime.datetime.now(),
+        print(f"===important log: case6b get_db_by_group_variation ==== {count}", "\n", datetime.datetime.now(),
               result)
 
         result = master_application.get_db_by_group_variation(group=10, variation=2)
-        print(f"===important log: case6c get_db_by_group_variation ==== {count}", datetime.datetime.now(),
+        print(f"===important log: case6c get_db_by_group_variation ==== {count}", "\n", datetime.datetime.now(),
               result)
 
-        # result = master_application.get_db_by_group_variation(group=30, variation=6)
-        # print(f"===important log: case6b get_db_by_group_variation ==== {count}", datetime.datetime.now(),
-        #       result)
-    # print("fffffffffffffffffffff", outstation_application.db_handler.db)
     _log.debug('Exiting.')
     master_application.shutdown()
     outstation_application.shutdown()
