@@ -67,6 +67,8 @@ jobs:
 
           sed -i "s/^.*-__version__ = /__version__ = $new_version/" setup.py
 
+          echo "New version is: ${new_version}"
+
           # Finally because we want to be able to use the variable in later
           # steps we set a NEW_TAG environmental variable
           echo "NEW_TAG=$(echo ${new_tag})" >> $GITHUB_ENV
