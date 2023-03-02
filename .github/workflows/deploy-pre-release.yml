@@ -62,7 +62,7 @@ jobs:
           fi
           current_tag=${current_tag#?}
 
-          new_version=$(python .github/workflows/version.py ${current_tag} --prerelease)
+          new_version=$(python .github/workflows/versions.py ${current_tag} --prerelease)
 
           new_tag=v${new_version}          
 
