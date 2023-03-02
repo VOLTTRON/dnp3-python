@@ -1,4 +1,5 @@
 # pydnp3 # require build from cpp source
+argcomplete
 
 # develop
 cmake

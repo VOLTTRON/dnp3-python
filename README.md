@@ -32,7 +32,7 @@ implementation of the [DNP3](http://ww.dnp.org) protocol stack written in C++14.
 
 Note:  This is a redesign of [pydnp3](https://github.com/ChargePoint/pydnp3) and work in progress.
 
-**Supported Platforms:** Linux 20.04
+**Supported Platforms:** Linux (Tested with Ubuntu 20.04, 22.04)
 
 ## Install
 
