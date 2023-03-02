@@ -83,6 +83,7 @@ jobs:
           python setup.py bdist_wheel --plat-name=manylinux1_x86_64
 
       - uses: ncipollo/release-action@v1
+        if: github.repository_owner == 'VOLTTRON'
         with:
           artifacts: "dist/*.whl"
           artifactErrorsFailBuild: true
