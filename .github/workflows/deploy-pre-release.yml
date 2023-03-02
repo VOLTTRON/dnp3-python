@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - add-build-workflow
 
 defaults:
   run:
