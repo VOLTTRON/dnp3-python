@@ -13,7 +13,7 @@ as electric utilities.
 DNP3 is composed of three layers of the OSI seven-layer functions model. These layers are application layer, data link
 layer, and transport layer. Also, DNP3 can be transmitted over a serial bus connection or over a TCP/IP network.
 
-#### Main DNP3 Capabilities
+### Main DNP3 Capabilities
 
 As an intelligent and robust SCADA protocol, DNP3 gives you many capabilities. Some of them are:
 
@@ -28,7 +28,7 @@ For more details about the DNP3 protocol, the [DNP3-Primer.md](docs/DNP3-Primer.
 ## About the dnp3-python Package
 
 Python bindings for the [opendnp3](https://github.com/automatak/dnp3) library, an open source
-implementation of the [DNP3](http://ww.dnp.org) protocol stack written in C++14.
+implementation of the [DNP3](http://www.dnp.org) protocol stack written in C++14.
 
 Note:  This is a redesign of [pydnp3](https://github.com/ChargePoint/pydnp3) and work in progress.
 
@@ -38,21 +38,21 @@ Note:  This is a redesign of [pydnp3](https://github.com/ChargePoint/pydnp3) and
 
 Support Python >= 3.8, using pip
 
-```
-$ pip install dnp3-python
+```bash
+pip install dnp3-python
 ```
 
-#### Validate Installation
+### Validate Installation
 
 After installing the package, run the following command to validate the installation.
 
-```
-$ dnp3demo
+```bash
+dnp3demo
 ```
 
 Expected output
 
-```
+```bash
 ms(1666217818743) INFO    manager - Starting thread (0)
 channel state change: OPENING
 ms(1666217818744) INFO    tcpclient - Connecting to: 127.0.0.1
@@ -79,7 +79,7 @@ ms(1666217819745) INFO    server - Accepted connection from: 127.0.0.1
 
 > **_NOTE:_**  Use `dnp3demo -h` to see demo options
 
-```
+```bash
 $ dnp3demo -h
 usage: dnp3demo [-h] {master,outstation,demo} ...
 
@@ -102,20 +102,19 @@ For more details about the `dnp3demo` module, please refer to [dnp3demo-module.m
 pydnp3 is a thin wrapper around opendnp3 classes. Documentation for the opendnp3
 classes is available at [automatak](https://www.automatak.com/opendnp3/#documentation).
 
-#### Dependencies
+### Dependencies
 
 To build the library from source, you must have:
 
-* A toolchain with a C++14 compiler
-* CMake >= 2.8.12 (https://cmake.org/download/)
+- A toolchain with a C++14 compiler
+- CMake >= 2.8.12 (<https://cmake.org/download/>)
 
 This repository includes two repositories as submodules (under `deps/`):
 
-* dnp3 (https://github.com/automatak/dnp3)
-* pybind11 (https://github.com/Kisensum/pybind11) - This is a fork containing a minor patch
+- dnp3 (<https://github.com/automatak/dnp3>)
+- pybind11 (<https://github.com/Kisensum/pybind11>) - This is a fork containing a minor patch
   required to compile some pydnp3 wrapper code. It will be replaced with pybind11 proper
   when the issue is resolved.
 
 Please find more info [Notes_on_packaging.md](docs/Notes-on-Packaging.md) about packaging process, for example, building from the C++ source code,
 packaging native Python code with C++ binding code, etc.
-
