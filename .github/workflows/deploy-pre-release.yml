@@ -84,7 +84,7 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "dist/*.gz,dist/*.whl"
+          artifacts: "dist/*.whl"
           artifactErrorsFailBuild: true
           generateReleaseNotes: true
           commit: ${{ github.ref }}
