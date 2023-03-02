@@ -27,14 +27,14 @@ jobs:
       #       check-out repo and set-up python
       #----------------------------------------------
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.3.0
         with:
           submodules: recursive
           fetch-depth: 0
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4.5.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
