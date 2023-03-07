@@ -13,11 +13,13 @@ defaults:
 env:
   LANG: en_US.utf-8
   LC_ALL: en_US.utf-8
-  PYTHON_VERSION: "3.8"
 
 jobs:
   bump_version:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: [ '3.8', '3.9', '3.10' ]
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
@@ -32,11 +34,12 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
+      - name: Set up Python ${{ matrix.python-version }}
         id: setup-python
         uses: actions/setup-python@v4.5.0
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ matrix.python-version }}
+      - run: echo "Installed python version $(python -V)"
 
       #----------------------------------------------
       # install cmake to allow us to build the wheel
