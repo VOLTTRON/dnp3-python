@@ -55,8 +55,7 @@ def print_menu():
 <bo> - update binary-output point value (for local control)
 <dd> - display database
 <dc> - display configuration
-=================================================================
-"""
+================================================================="""
     print(welcome_str)
 
 def main(parser=None, *args, **kwargs):
