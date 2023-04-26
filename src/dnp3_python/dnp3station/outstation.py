@@ -73,6 +73,9 @@ class MyOutStation(opendnp3.IOutstationApplication):
 
                  channel_log_level=opendnp3.levels.NORMAL,
                  outstation_log_level=opendnp3.levels.NORMAL,
+
+                 db_sizes: opendnp3.DatabaseSizes = None,
+                 event_buffer_config: opendnp3.EventBufferConfig = None
                  ):
         super().__init__()
 
@@ -93,13 +96,15 @@ class MyOutStation(opendnp3.IOutstationApplication):
 
         _log.debug('Configuring the DNP3 stack.')
         _log.debug('Configuring the outstation database.')
-        self.stack_config = self.configure_stack()  # TODO: refactor it to outside of the class
+        self.stack_config = self.configure_stack(db_sizes=db_sizes,
+                                                 event_buffer_config=event_buffer_config)
 
         # TODO: Justify if this is is really working? (Not sure if it really takes effect yet.)
         #  but needs to add docstring. Search for "intriguing" in "data_retrieval_demo.py"
         # Note: dbconfig signature at cpp/libs/include/asiodnp3/DatabaseConfig.h
         # which has sizes parameter
-        self.configure_database(self.stack_config.dbConfig)  # TODO: refactor it to outside of the class.
+        # Note: stack_config is far-reaching, keep this method within the class
+        self.configure_database(self.stack_config.dbConfig)
 
         # self.log_handler = MyLogger()
         self.log_handler = asiodnp3.ConsoleLogger().Create()  # (or use this during regression testing)
@@ -231,22 +236,19 @@ class MyOutStation(opendnp3.IOutstationApplication):
         else:
             cls.outstation_application = outstation_application
 
-    def configure_stack(self):
+    def configure_stack(self, db_sizes: opendnp3.DatabaseSizes = None,
+                        event_buffer_config: opendnp3.EventBufferConfig = None,
+                        **kwargs) -> asiodnp3.OutstationStackConfig:
         """Set up the OpenDNP3 configuration."""
-        stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(10))
-        # stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.Empty())
-        # stack_config = asiodnp3.OutstationStackConfig(dbSizes=opendnp3.DatabaseSizes.AnalogOnly(8))
-        # TODO: expose DatabaseSizes to public interface
-        # stack_config = asiodnp3.OutstationStackConfig(dbSizes=opendnp3.DatabaseSizes(numBinary=10,
-        #                                                                              numDoubleBinary=0,
-        #                                                                              numAnalog=10,
-        #                                                                              numCounter=0,
-        #                                                                              numFrozenCounter=0,
-        #                                                                              numBinaryOutputStatus=10,
-        #                                                                              numAnalogOutputStatus=10,
-        #                                                                              numTimeAndInterval=0))
+        # Set to default
+        if db_sizes is None:
+            db_sizes = opendnp3.DatabaseSizes.AllTypes(count=5)
+        if event_buffer_config is None:
+            event_buffer_config = opendnp3.EventBufferConfig().AllTypes(sizes=10)
 
-        stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig().AllTypes(10)
+        stack_config = asiodnp3.OutstationStackConfig(dbSizes=db_sizes)
+
+        stack_config.outstation.eventBufferConfig = event_buffer_config
         stack_config.outstation.params.allowUnsolicited = True  # TODO: create interface for this
         stack_config.link.LocalAddr = self.outstation_id  # meaning for outstation, use 1 to follow simulator's default
         stack_config.link.RemoteAddr = self.master_id  # meaning for master station, use 2 to follow simulator's default
@@ -262,7 +264,6 @@ class MyOutStation(opendnp3.IOutstationApplication):
             Configure two Analog points (group/variation 30.1) at indexes 0, 1.
             Configure two Binary points (group/variation 1.2) at indexes 1 and 2.
         """
-        # TODO: figure out the right way to configure
 
         # AnalogInput
         db_config.analog[0].clazz = opendnp3.PointClass.Class2
