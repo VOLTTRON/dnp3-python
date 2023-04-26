@@ -19,7 +19,7 @@ _log.setLevel(logging.DEBUG)
 def input_prompt(display_str=None, prefix="", menu_indicator="") -> str:
     if display_str is None:
         display_str = f"""
-======== Your Input Here: ==(outstation-{menu_indicator})======
+======== Your Input Here: ==(Outstation-{menu_indicator})======
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 """
     return input(prefix + display_str)
@@ -116,13 +116,12 @@ def main(parser=None, *args, **kwargs):
         #     print_menu()
         #     # print("!!!!!!!!! WARNING: The outstation is NOT connected !!!!!!!!!")
 
-        sleep(2)
         print_menu()
         print()
         if outstation_application.is_connected:
             option = input_prompt(menu_indicator="Main Menu")  # Note: one of ["ai", "ao", "bi", "bo",  "dd", "dc"]
         else:
-            option = input_prompt(prefix="!!!!!!!!! WARNING: The outstation is NOT connected !!!!!!!!!\n",
+            option = input_prompt(prefix="!!!!!!!!! WARNING: The Outstation is NOT connected !!!!!!!!!\n",
                                   menu_indicator="Main Menu")
 
         while True:
