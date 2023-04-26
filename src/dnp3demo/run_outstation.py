@@ -16,12 +16,13 @@ _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 
 
-def input_prompt(display_str=None) -> str:
+def input_prompt(display_str=None, prefix="", menu_indicator="") -> str:
     if display_str is None:
-        display_str = """
-======== Your Input Here: ==(outstation)======
+        display_str = f"""
+======== Your Input Here: ==(outstation-{menu_indicator})======
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 """
-    return input(display_str)
+    return input(prefix + display_str)
 
 
 def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -46,7 +47,7 @@ def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 
 def print_menu():
-    welcome_str = """\
+    welcome_str = """
 ==== Outstation Operation MENU ==================================
 <ai> - update analog-input point value (for local reading)
 <ao> - update analog-output point value (for local control)
@@ -54,7 +55,7 @@ def print_menu():
 <bo> - update binary-output point value (for local control)
 <dd> - display database
 <dc> - display configuration
-=================================================================\
+=================================================================
 """
     print(welcome_str)
 
@@ -103,23 +104,34 @@ def main(parser=None, *args, **kwargs):
         count += 1
         # print(f"=========== Count {count}")
 
-        if outstation_application.is_connected:
-            # print("Communication Config", master_application.get_config())
-            print_menu()
-        else:
-            print("Connection error.")
-            print("Connection Config", outstation_application.get_config())
-            print("Start retry...")
-            sleep(2)
-            continue
+        # if outstation_application.is_connected:
+        #     # print("Communication Config", master_application.get_config())
+        #     print_menu()
+        # else:
+        #     # Note: even not connected, still allow the CLI enter the main menu.
+        #     print("Connection error.")
+        #     print("Connection Config", outstation_application.get_config())
+        #     # print("Start retry...")
+        #     # sleep(2)
+        #     # continue
+        #     print_menu()
+        #     # print("!!!!!!!!! WARNING: The outstation is NOT connected !!!!!!!!!")
 
-        option = input_prompt()  # Note: one of ["ai", "ao", "bi", "bo",  "dd", "dc"]
+        sleep(2)
+        print_menu()
+        print()
+        if outstation_application.is_connected:
+            option = input_prompt(menu_indicator="Main Menu")  # Note: one of ["ai", "ao", "bi", "bo",  "dd", "dc"]
+        else:
+            option = input_prompt(prefix="!!!!!!!!! WARNING: The outstation is NOT connected !!!!!!!!!\n",
+                                  menu_indicator="Main Menu")
+
         while True:
             if option == "ai":
                 print("You chose <ai> - update analog-input point value (for local reading)")
-                print("Type in <float> and <index>. Separate with space, then hit ENTER.")
+                print("Type in <float> and <index>. Separate with space, then hit ENTER. e.g., `1.4321, 1`.")
                 print("Type 'q', 'quit', 'exit' to main menu.")
-                input_str = input_prompt()
+                input_str = input_prompt(menu_indicator="<ai>")
                 if input_str in ["q", "quit", "exit"]:
                     break
                 try:
@@ -134,9 +146,9 @@ def main(parser=None, *args, **kwargs):
                     print(e)
             elif option == "ao":
                 print("You chose <ao> - update analog-output point value (for local control)")
-                print("Type in <float> and <index>. Separate with space, then hit ENTER.")
+                print("Type in <float> and <index>. Separate with space, then hit ENTER. e.g., `0.1234, 0`.")
                 print("Type 'q', 'quit', 'exit' to main menu.")
-                input_str = input_prompt()
+                input_str = input_prompt(menu_indicator="<ao>")
                 if input_str in ["q", "quit", "exit"]:
                     break
                 try:
@@ -151,8 +163,8 @@ def main(parser=None, *args, **kwargs):
                     print(e)
             elif option == "bi":
                 print("You chose <bi> - update binary-input point value (for local reading)")
-                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER.")
-                input_str = input_prompt()
+                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER. e.g., `1, 0`.")
+                input_str = input_prompt(menu_indicator="<bi>")
                 if input_str in ["q", "quit", "exit"]:
                     break
                 try:
@@ -171,8 +183,8 @@ def main(parser=None, *args, **kwargs):
                     print(e)
             elif option == "bo":
                 print("You chose <bo> - update binary-output point value (for local control)")
-                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER.")
-                input_str = input_prompt()
+                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER. e.g., `1, 0`.")
+                input_str = input_prompt(menu_indicator="<bo>")
                 if input_str in ["q", "quit", "exit"]:
                     break
                 try:
