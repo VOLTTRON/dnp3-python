@@ -1,4 +1,5 @@
 import logging
+import random
 import sys
 import argparse
 
@@ -42,6 +43,8 @@ def setup_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--outstation-id=", action="store", default=1, type=int,
                         metavar="<ID>",
                         help="master id, default: 1")
+    parser.add_argument("--init-random", action="store_true",
+                        help="if appears, init with random values")
 
     return parser
 
@@ -95,6 +98,23 @@ def main(parser=None, *args, **kwargs):
     # Note: if without sleep(2) there will be a glitch when first send_select_and_operate_command
     #  (i.e., all the values are zero, [(0, 0.0), (1, 0.0), (2, 0.0), (3, 0.0)]))
     #  since it would not update immediately
+
+    # Additional init for demo purposes
+    # if d_args.get("init_random")==True, init with random values
+    if d_args.get("init_random"):
+        db_sizes = outstation_application.db_sizes
+        for n in range(db_sizes.numBinary):
+            val = random.choice([True, False])
+            outstation_application.apply_update(opendnp3.Binary(val), n)
+        for n in range(db_sizes.numBinaryOutputStatus):
+            val = random.choice([True, False])
+            outstation_application.apply_update(opendnp3.BinaryOutputStatus(val), n)
+        for n in range(db_sizes.numAnalog):
+            val = random.random() * pow(10, n)
+            outstation_application.apply_update(opendnp3.Analog(val), n)
+        for n in range(db_sizes.numAnalogOutputStatus):
+            val = random.random() * pow(10, n)
+            outstation_application.apply_update(opendnp3.AnalogOutputStatus(val), n)
 
     count = 0
     while count < 1000:

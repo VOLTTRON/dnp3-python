@@ -94,6 +94,14 @@ class MyOutStation(opendnp3.IOutstationApplication):
         self.master_id: int = master_id
         self.outstation_id: int = outstation_id
 
+        # Set to default
+        if db_sizes is None:
+            db_sizes = opendnp3.DatabaseSizes.AllTypes(count=5)
+        if event_buffer_config is None:
+            event_buffer_config = opendnp3.EventBufferConfig().AllTypes(sizes=10)
+        self.db_sizes = db_sizes
+        self.event_buffer_config = event_buffer_config
+
         _log.debug('Configuring the DNP3 stack.')
         _log.debug('Configuring the outstation database.')
         self.stack_config = self.configure_stack(db_sizes=db_sizes,
@@ -240,11 +248,6 @@ class MyOutStation(opendnp3.IOutstationApplication):
                         event_buffer_config: opendnp3.EventBufferConfig = None,
                         **kwargs) -> asiodnp3.OutstationStackConfig:
         """Set up the OpenDNP3 configuration."""
-        # Set to default
-        if db_sizes is None:
-            db_sizes = opendnp3.DatabaseSizes.AllTypes(count=5)
-        if event_buffer_config is None:
-            event_buffer_config = opendnp3.EventBufferConfig().AllTypes(sizes=10)
 
         stack_config = asiodnp3.OutstationStackConfig(dbSizes=db_sizes)
 
