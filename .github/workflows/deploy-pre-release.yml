@@ -1,0 +1,103 @@
+---
+name: Deploy Pre-Release Artifacts
+
+on:
+  push:
+    branches:
+      - develop
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  LANG: en_US.utf-8
+  LC_ALL: en_US.utf-8
+
+jobs:
+  bump_version:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ '3.8', '3.9', '3.10' , '3.11']
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v3.3.0
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        id: setup-python
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: echo "Installed python version $(python -V)"
+
+      #----------------------------------------------
+      # install cmake to allow us to build the wheel
+      #----------------------------------------------
+      - name: Install Libraries
+        run: |
+          pip install cmake wheel packaging
+
+      - name: Bump version
+        run: |
+          # current version in the setup.py file 
+          current_version=$(sed -n -e 's/^.*__version__ = //p' setup.py)
+          current_version=$(echo ${current_version} | sed -e "s/'//g")
+
+          # current_tag is the last tagged relese in the repository.   From there
+          # we need to remove the v from the begining of the tag.
+          if ! $(git tag -l "v*" = ''); then
+            # uses -V which is version sort to keep it monotonically increasing.
+            current_tag=$(git tag -l "v*" | grep --invert-match '-' | sort --reverse -V  | sed -n 1p)
+          else
+            current_tag=v$current_version
+          fi
+          current_tag=${current_tag#?}
+
+          new_version=$(python .github/workflows/versions.py ${current_tag} --prerelease)
+
+          new_tag=v${new_version}          
+
+          sed -i "s/^.*-__version__ = /__version__ = $new_version/" setup.py
+
+          echo "New version is: ${new_version}"
+
+          # Finally because we want to be able to use the variable in later
+          # steps we set a NEW_TAG environmental variable
+          echo "NEW_TAG=$(echo ${new_tag})" >> $GITHUB_ENV
+
+      #----------------------------------------------
+      # Build wheel
+      #----------------------------------------------
+      - name: Build wheel
+        run: |
+          python setup.py install
+          python setup.py bdist_wheel --plat-name=manylinux1_x86_64
+
+      - uses: ncipollo/release-action@v1
+        if: github.repository_owner == 'VOLTTRON'
+        with:
+          artifacts: "dist/*.whl"
+          artifactErrorsFailBuild: true
+          generateReleaseNotes: true
+          commit: ${{ github.ref }}
+          prerelease: true
+          tag: ${{ env.NEW_TAG }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish pre-release to pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: github.repository_owner == 'VOLTTRON'
+        with:
+          password: ${{ secrets.PYPI_TOKEN}}

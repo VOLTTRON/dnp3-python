@@ -47,6 +47,8 @@ from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
 from setuptools import find_packages, find_namespace_packages
+from pathlib import Path
+
 __version__ = '0.3.0b1'
 
 
@@ -108,6 +110,9 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
 
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+
 setup(
     name='dnp3-python',
     version=__version__,
@@ -115,7 +120,8 @@ setup(
     author_email='volttron@pnnl.gov',
     url='https://github.com/VOLTTRON/dnp3-python',
     description='pydnp3 -- python binding for opendnp3',
-    # long_description='long description',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     install_requires=[
         # 'pybind11>=2.2',
         'argcomplete'],
