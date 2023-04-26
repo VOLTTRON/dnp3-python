@@ -34,7 +34,7 @@ DbStorage = Dict[opendnp3.GroupVariation, Dict[
     int, DbPointVal]]  # e.g., {GroupVariation.Group30Var6: {0: 4.8, 1: 14.1, 2: 27.2, 3: 0.0, 4: 0.0}
 
 
-class MyMasterNew:
+class MyMaster:
     """
 
         DNP3 spec section 5.1.6.1:

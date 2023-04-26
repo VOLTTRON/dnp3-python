@@ -3,7 +3,7 @@ import sys
 import argparse
 
 from pydnp3 import opendnp3
-from dnp3_python.dnp3station.outstation_new import MyOutStationNew
+from dnp3_python.dnp3station.outstation import MyOutStation
 
 from time import sleep
 
@@ -76,7 +76,7 @@ def main(parser=None, *args, **kwargs):
     d_args = vars(args)
     print(__name__, d_args)
 
-    outstation_application = MyOutStationNew(
+    outstation_application = MyOutStation(
         # masterstation_ip_str=args.master_ip,
         outstation_ip=d_args.get("outstation_ip="),
         port=d_args.get("port="),

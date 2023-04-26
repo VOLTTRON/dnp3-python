@@ -32,7 +32,7 @@ _log.setLevel(logging.INFO)
 PointValueType = Union[opendnp3.Analog, opendnp3.Binary, opendnp3.AnalogOutputStatus, opendnp3.BinaryOutputStatus]
 
 
-class MyOutStationNew(opendnp3.IOutstationApplication):
+class MyOutStation(opendnp3.IOutstationApplication):
     """
             Interface for all outstation callback info except for control requests.
 
@@ -62,7 +62,7 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
     # db_handler = None
     outstation_application = None
     # outstation_pool = {}  # a pool of outstations
-    outstation_application_pool: Dict[str, MyOutStationNew] = {}  # a pool of outstation applications
+    outstation_application_pool: Dict[str, MyOutStation] = {}  # a pool of outstation applications
 
     def __init__(self,
                  outstation_ip: str = "0.0.0.0",
@@ -132,16 +132,16 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         self.command_handler.post_init(outstation_id=self.outstation_app_id)
         # self.command_handler =  opendnp3.SuccessCommandHandler().Create() # (or use this during regression testing)
         # init outstation applicatioin, # Note: singleton for AddOutstation()
-        MyOutStationNew.set_outstation_application(outstation_application=self)
+        MyOutStation.set_outstation_application(outstation_application=self)
 
         # finally, init outstation
         self.outstation = self.channel.AddOutstation(id="outstation-" + self.outstation_app_id,
                                                      commandHandler=self.command_handler,
-                                                     application=MyOutStationNew.outstation_application,
+                                                     application=MyOutStation.outstation_application,
                                                      config=self.stack_config)
 
-        MyOutStationNew.add_outstation_app(outstation_id=self.outstation_app_id,
-                                           outstation_app=self.outstation_application)
+        MyOutStation.add_outstation_app(outstation_id=self.outstation_app_id,
+                                        outstation_app=self.outstation_application)
 
         # Configure log level for channel(tcpclient) and outstation
         # note: one of the following
@@ -209,13 +209,13 @@ class MyOutStationNew(opendnp3.IOutstationApplication):
         return self._comm_conifg
 
     @classmethod
-    def add_outstation_app(cls, outstation_id: str, outstation_app: MyOutStationNew):
+    def add_outstation_app(cls, outstation_id: str, outstation_app: MyOutStation):
         """add outstation instance to outstation pool,
         the id is in the format of `ip-port`, e.g., `0.0.0.0-20000`."""
         cls.outstation_application_pool[outstation_id] = outstation_app
 
     @classmethod
-    def get_outstation_app(cls, outstation_id: str) -> MyOutStationNew:
+    def get_outstation_app(cls, outstation_id: str) -> MyOutStation:
         """get outstation instance from the outstation pool using outstation id,
         the id is in the format of `ip-port`, e.g., `0.0.0.0-20000`."""
         return cls.outstation_application_pool.get(outstation_id)
@@ -414,7 +414,7 @@ class MyOutstationCommandHandler(opendnp3.ICommandHandler):
         :param index: int
         :return: CommandStatus
         """
-        outstation_application_pool = MyOutStationNew.outstation_application_pool
+        outstation_application_pool = MyOutStation.outstation_application_pool
         outstation_app = outstation_application_pool.get(self.outstation_id)
 
         try:
@@ -437,7 +437,7 @@ class MyOutstationCommandHandler(opendnp3.ICommandHandler):
         :return: CommandStatus
         """
 
-        outstation_application_pool = MyOutStationNew.outstation_application_pool
+        outstation_application_pool = MyOutStation.outstation_application_pool
         outstation_app = outstation_application_pool.get(self.outstation_id)
         try:
             # self.outstation_application.process_point_value('Operate', command, index, op_type)

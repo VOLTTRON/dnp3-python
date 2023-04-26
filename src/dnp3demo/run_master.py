@@ -1,7 +1,7 @@
 import logging
 import sys
 import argparse
-from dnp3_python.dnp3station.master_new import MyMasterNew
+from dnp3_python.dnp3station.master import MyMaster
 from time import sleep
 
 
@@ -73,7 +73,7 @@ def main(parser=None, *args, **kwargs):
     d_args = vars(args)
     print(__name__, d_args)
     # print(args.__dir__())
-    master_application = MyMasterNew(
+    master_application = MyMaster(
         master_ip=d_args.get("master_ip="),
         outstation_ip=d_args.get("outstation_ip="),
         port=d_args.get("port="),

@@ -4,8 +4,8 @@ import sys
 
 from pydnp3 import opendnp3
 
-from dnp3_python.dnp3station.master_new import MyMasterNew
-from dnp3_python.dnp3station.outstation_new import MyOutStationNew
+from dnp3_python.dnp3station.master import MyMaster
+from dnp3_python.dnp3station.outstation import MyOutStation
 
 import datetime
 from time import sleep
@@ -21,12 +21,12 @@ _log.setLevel(logging.DEBUG)
 
 def main():
     # init an outstation using default configuration, e.g., port=20000. Then start.
-    outstation_application = MyOutStationNew()
+    outstation_application = MyOutStation()
     outstation_application.start()
     _log.debug('Initialization complete. OutStation in command loop.')
 
     # init a master using default configuration, e.g., port=20000. Then start.
-    master_application = MyMasterNew()
+    master_application = MyMaster()
     master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
 
