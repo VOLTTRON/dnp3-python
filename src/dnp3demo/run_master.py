@@ -8,8 +8,7 @@ from time import sleep
 stdout_stream = logging.StreamHandler(sys.stdout)
 stdout_stream.setFormatter(logging.Formatter('%(asctime)s\t%(name)s\t%(levelname)s\t%(message)s'))
 
-_log = logging.getLogger(__name__)
-_log = logging.getLogger("control_workflow_demo")
+_log = logging.getLogger(f"{__file__}, {__name__}")
 _log.addHandler(stdout_stream)
 _log.setLevel(logging.DEBUG)
 
@@ -52,6 +51,7 @@ def print_menu():
 <bo> - set binary-output point value (for remote control)
 <dd> - display/polling (outstation) database
 <dc> - display configuration
+<q>  - quit the program
 =================================================================\
 """
     print(welcome_str)
@@ -158,13 +158,18 @@ def main(parser=None, *args, **kwargs):
                 print(master_application.get_config())
                 sleep(3)
                 break
+            elif option == "q":
+                print("Stopping Master")
+                _log.debug('Exiting.')
+                master_application.shutdown()
+                sys.exit(0)
             else:
                 print(f"ERROR- your input `{option}` is not one of the following.")
                 sleep(1)
                 break
 
-    _log.debug('Exiting.')
-    master_application.shutdown()
+    # _log.debug('Exiting.')
+    # master_application.shutdown()
     # outstation_application.shutdown()
 
 
