@@ -21,9 +21,6 @@
 * setup.py describes the packaging configuration. (tested with with python==3.8.13, setuptools==63.4.1)
     * to build and install the package locally, run `python setup.py install`
     * to build wheel, run `python setup.py bdist_wheel [--plat-name=manylinux1_x86_64]`
-* Installing with windows:
-    * Requires latest Visual Studio install.
-    * Run the above steps with python installed on target system while working from CMD or Powershell for VS 2022
 
 ## Notes on working with recurse-submodules
 
@@ -282,6 +279,23 @@ adding 'dnp3_python-0.2.3b2.dist-info/top_level.txt'
 adding 'dnp3_python-0.2.3b2.dist-info/RECORD'
 removing build/bdist.linux-x86_64/wheel
 ```
+
+### Building on windows systems
+To get started install the following programs:
+* Latest Visual Studio (2022 at the time of writing)
+    * Desktop development with C++ - Workload
+    * Git for Windows - Individual components
+* Local python install
+    * install python package `wheel` with `py -m pip install wheel`
+    
+#### Compiling
+* Open up powershell from within VS2022 - Tools -> Command Line -> Developer Powershell
+* run a `git clone --recurse-submodules https://github.com/VOLTTRON/dnp3-python.git` to obtain the latest version
+* `cd dnp3-python`
+* `python setup.py install`
+* `python setup.py bdist_wheel`
+* the `whl` file should now be in the `dist` folder
+
 
 More information
 about [building wheels](https://wheel.readthedocs.io/en/stable/user_guide.html?highlight=bdist_wheel#building-wheels),
