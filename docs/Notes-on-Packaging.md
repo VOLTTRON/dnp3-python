@@ -21,6 +21,9 @@
 * setup.py describes the packaging configuration. (tested with with python==3.8.13, setuptools==63.4.1)
     * to build and install the package locally, run `python setup.py install`
     * to build wheel, run `python setup.py bdist_wheel [--plat-name=manylinux1_x86_64]`
+* Installing with windows:
+    * Requires latest Visual Studio install.
+    * Run the above steps with python installed on target system while working from CMD or Powershell for VS 2022
 
 ## Notes on working with recurse-submodules
 
