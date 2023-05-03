@@ -181,7 +181,7 @@ def main(parser=None, *args, **kwargs):
                     print(e)
             elif option == "bi":
                 print("You chose <bi> - update binary-input point value (for local reading)")
-                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER. e.g., `1, 0`.")
+                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER. e.g., `1 0`.")
                 input_str = input_prompt(menu_indicator="<bi>")
                 if input_str in ["q", "quit", "exit"]:
                     break
@@ -201,7 +201,7 @@ def main(parser=None, *args, **kwargs):
                     print(e)
             elif option == "bo":
                 print("You chose <bo> - update binary-output point value (for local control)")
-                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER. e.g., `1, 0`.")
+                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER. e.g., `1 0`.")
                 input_str = input_prompt(menu_indicator="<bo>")
                 if input_str in ["q", "quit", "exit"]:
                     break

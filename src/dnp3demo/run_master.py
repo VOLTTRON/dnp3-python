@@ -127,7 +127,7 @@ def main(parser=None, *args, **kwargs):
                     print(e)
             elif option == "bo":
                 print("You chose <bo> - set binary-output point value")
-                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER. e.g., `1, 0`.")
+                print("Type in <[1/0]> and <index>. Separate with space, then hit ENTER. e.g., `1 0`.")
                 input_str = input_prompt()
                 if input_str in ["q", "quit", "exit"]:
                     break
