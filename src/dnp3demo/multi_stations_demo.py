@@ -4,8 +4,8 @@ import sys
 
 from pydnp3 import opendnp3
 
-from dnp3_python.dnp3station.master_new import MyMasterNew
-from dnp3_python.dnp3station.outstation_new import MyOutStationNew
+from dnp3_python.dnp3station.master import MyMaster
+from dnp3_python.dnp3station.outstation import MyOutStation
 
 import datetime
 from time import sleep
@@ -21,19 +21,19 @@ _log.setLevel(logging.DEBUG)
 
 def main():
 
-    outstation_application = MyOutStationNew()
+    outstation_application = MyOutStation()
     outstation_application.start()
     _log.debug('Initialization complete. OutStation in command loop.')
 
-    master_application = MyMasterNew()
+    master_application = MyMaster()
     master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
 
-    outstation_application_20001 = MyOutStationNew(port=20001)
+    outstation_application_20001 = MyOutStation(port=20001)
     outstation_application_20001.start()
     _log.debug('Initialization complete. OutStation p20001 in command loop.')
 
-    master_application_20001 = MyMasterNew(port=20001)
+    master_application_20001 = MyMaster(port=20001)
     master_application_20001.start()
     _log.debug('Initialization complete. Master p20001 Station in command loop.')
 
@@ -80,7 +80,7 @@ def main():
 
         if count == 4:
             master_application_20001.shutdown()
-            print(MyOutStationNew.outstation_application_pool)
+            print(MyOutStation.outstation_application_pool)
 
         # master station retrieve outstation point values
 

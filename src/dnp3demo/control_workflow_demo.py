@@ -4,8 +4,8 @@ import sys
 
 from pydnp3 import opendnp3
 from dnp3_python.dnp3station.station_utils import command_callback
-from dnp3_python.dnp3station.master_new import MyMasterNew
-from dnp3_python.dnp3station.outstation_new import MyOutStationNew
+from dnp3_python.dnp3station.master import MyMaster
+from dnp3_python.dnp3station.outstation import MyOutStation
 
 from time import sleep
 import datetime
@@ -21,7 +21,7 @@ _log.setLevel(logging.DEBUG)
 
 def main():
     # cmd_interface_master = MasterCmd()
-    master_application = MyMasterNew(
+    master_application = MyMaster(
         # channel_log_level=opendnp3.levels.ALL_COMMS,
         # master_log_level=opendnp3.levels.ALL_COMMS
         # soe_handler=SOEHandler(soehandler_log_level=logging.DEBUG)
@@ -29,7 +29,7 @@ def main():
     master_application.start()
     _log.debug('Initialization complete. Master Station in command loop.')
     # cmd_interface_outstation = OutstationCmd()
-    outstation_application = MyOutStationNew(
+    outstation_application = MyOutStation(
         # channel_log_level=opendnp3.levels.ALL_COMMS,
         # outstation_log_level=opendnp3.levels.ALL_COMMS
     )

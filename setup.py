@@ -47,10 +47,9 @@ from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
 from setuptools import find_packages, find_namespace_packages
-__version__ = '0.2.3b3'
-
 from pathlib import Path
 
+__version__ = '0.3.0b1'
 
 
 class CMakeExtension(Extension):
