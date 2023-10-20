@@ -88,21 +88,13 @@ class CMakeBuild(build_ext):
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
             cmake_args += ['-DSTATICLIBS=ON']
-            build_args += ['--', '-j2']
+            build_args += ['--', '-j']
 
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
                                                               self.distribution.get_version())
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
-
-        # setup_path = os.path.dirname(os.path.abspath(__file__))
-        # if not "<string>" in open(os.path.join(setup_path, 'deps', 'dnp3', 'cpp', 'libs', 'include', 'asiodnp3', 'IMasterOperations.h')).read():
-        #     dnp3_path = os.path.join(setup_path, 'deps', 'dnp3')
-        #     patch_path = os.path.join(setup_path, 'imasteroperations.patch')
-        #     # dnp3_python_path = os.path.join(setup_path, 'src', 'dnp3_python')
-        #
-        #     subprocess.check_call(['git', 'apply', patch_path], cwd=dnp3_path)
 
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
