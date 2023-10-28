@@ -11,6 +11,10 @@ as electric utilities.
 DNP3 is composed of three layers of the OSI seven-layer functions model. These layers are application layer, data link
 layer, and transport layer. Also, DNP3 can be transmitted over a serial bus connection or over a TCP/IP network.
 
+Application layer fragments from Master DNP3 stations are typically requests for operations on data
+objects, and application layer fragments from Slave DNP3 stations (i.e., Outstation) are typically responses to those
+requests. A DNP3 Outstation may also transmit a message without a request (an unsolicited response).
+
 ## Main DNP3 Capabilities
 
 As an intelligent and robust SCADA protocol, DNP3 gives you many capabilities. Some of them are:
