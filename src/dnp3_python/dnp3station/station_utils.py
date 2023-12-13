@@ -19,32 +19,33 @@ _log.setLevel(logging.DEBUG)
 
 # alias
 ICollectionIndexedVal = Union[opendnp3.ICollectionIndexedAnalog,
-                              opendnp3.ICollectionIndexedBinary,
-                              opendnp3.ICollectionIndexedAnalogOutputStatus,
-                              opendnp3.ICollectionIndexedBinaryOutputStatus]
+opendnp3.ICollectionIndexedBinary,
+opendnp3.ICollectionIndexedAnalogOutputStatus,
+opendnp3.ICollectionIndexedBinaryOutputStatus]
 DbPointVal = Union[float, int, bool]
 VisitorClass = Union[VisitorIndexedTimeAndInterval,
-                     VisitorIndexedAnalog,
-                     VisitorIndexedBinary,
-                     VisitorIndexedCounter,
-                     VisitorIndexedFrozenCounter,
-                     VisitorIndexedAnalogOutputStatus,
-                     VisitorIndexedBinaryOutputStatus,
-                     VisitorIndexedDoubleBitBinary]
+VisitorIndexedAnalog,
+VisitorIndexedBinary,
+VisitorIndexedCounter,
+VisitorIndexedFrozenCounter,
+VisitorIndexedAnalogOutputStatus,
+VisitorIndexedBinaryOutputStatus,
+VisitorIndexedDoubleBitBinary]
 
 MasterCmdType = Union[opendnp3.AnalogOutputDouble64,
-                      opendnp3.AnalogOutputFloat32,
-                      opendnp3.AnalogOutputInt32,
-                      opendnp3.AnalogOutputInt16,
-                      opendnp3.ControlRelayOutputBlock]
+opendnp3.AnalogOutputFloat32,
+opendnp3.AnalogOutputInt32,
+opendnp3.AnalogOutputInt16,
+opendnp3.ControlRelayOutputBlock]
 
 OutstationCmdType = Union[opendnp3.Analog,
-                          opendnp3.AnalogOutputStatus,
-                          opendnp3.Binary,
-                          opendnp3.BinaryOutputStatus]
+opendnp3.AnalogOutputStatus,
+opendnp3.Binary,
+opendnp3.BinaryOutputStatus]
 
 MeasurementType = TypeVar("MeasurementType",
                           bound=opendnp3.Measurement)  # inheritance, e.g., opendnp3.Analog,
+
 
 # TODO: add validating connection logic
 # TODO: add validating configuration logic
@@ -405,8 +406,11 @@ class DBHandler:
                                     stack_config.dbConfig.sizes.numBinaryOutputStatus,
                                     stack_config.dbConfig.sizes.numAnalog,
                                     stack_config.dbConfig.sizes.numAnalogOutputStatus],
-                                   ["Analog", "AnalogOutputStatus",
-                                    "Binary", "BinaryOutputStatus"]):
+                                   ["Binary",
+                                    "BinaryOutputStatus",
+                                    "Analog",
+                                    "AnalogOutputStatus",
+                                    ]):
             val_body = dict((n, None) for n in range(number))
             db[gv_name] = val_body
 
